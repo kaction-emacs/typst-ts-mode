@@ -95,16 +95,42 @@
        :height ,(nth 5 typst-ts-markup-header-scale)))
   "See `typst-ts-markup-header-face'.")
 
+(defface typst-ts-markup-url-face
+  '((t :inherit font-lock-string-face))
+  "Face for url."
+  :group 'typst-ts-markup)
+
+(defface typst-ts-markup-emphasis-face
+  '((t :slant italic))
+  "Face for emphasis."
+  :group 'typst-ts-markup)
+
+(defface typst-ts-markup-strong-face
+  '((t :weight bold))
+  "Face for strong."
+  :group 'typst-ts-markup)
 
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
     :feature comment
-    '((comment) @font-lock-comment-face)
+    ((comment) @font-lock-comment-face)
 
     :language typst
     :feature markup
-    '((heading) @)))
+    ((heading) @typst-ts-markup-header-face
+     (url) @typst-ts-markup-url-face
+     (emph) @typst-ts-markup-emphasis-face
+     (strong) @typst-ts-markup-strong-face
+     ;; (item) @typst-ts-markup-item-face ;; TODO
+     ;; (term) @typst-ts-markup-term-face ;; TODO
+     ;; (symbol) @typst-ts-markup-symbol-face ;; TODO
+     ;; (shorthand) @typst-ts-markup-shorthand-face ;; TODO
+     ;; (quote) @typst-ts-markup-quote-face ;; TODO
+     ;; (align) @typst-ts-markup-align-face ;; TODO
+     ;; (letter) @typst-ts-markup-letter-face ;; TODO
+     ;; (linebreak) @typst-ts-markup-linebreak-face ;; TODO
+     )))
 
 (defun typst-ts-mode-comment-setup()
   "Setup comment related stuffs for typst-ts-mode."
@@ -143,16 +169,16 @@
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
               ;; TODO
-              '((comment markup)
-                (markup code)
-                (builtin)
-                (operator ponctuation)
+              '((markup comment)
+                ;; (markup code)
+                ;; (builtin)
+                ;; (operator ponctuation)
                 ;; (bracket delimiter error function operator property variable)
                 ))
 
-
-  (add-to-list 'auto-mode-alist '("\\.typ\\'" . typst-ts-mode))
-
   (treesit-major-mode-setup))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.typ\\'" . typst-ts-mode))
 
 (provide 'typst-ts-mode)
