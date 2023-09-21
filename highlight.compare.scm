@@ -1,10 +1,10 @@
-(call
+(call                        ;; DONE code
   item: (ident) @function)
-(call
+(call                        ;; DONE code
   item: (field field: (ident) @function.method))
-(tagged field: (ident) @tag)
-(field field: (ident) @tag)
-(comment) @comment
+(tagged field: (ident) @tag) ;; DONE code
+(field field: (ident) @tag)  ;; DONE code
+(comment) @comment           ;; DONE code
 
 ; CONTROL
 (let "let" @keyword.storage.type)                   ;; DONE code

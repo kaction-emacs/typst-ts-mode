@@ -9,8 +9,7 @@
 https://www.google.com // url
 _emph_ // emphasis
 *strong* // strong
-// item (current cannot cope with tailing comment)
-- item 
+- item // item
 / term1: value
 "El Psy Kongraoo" // quote
 hello \ // line break
@@ -64,3 +63,10 @@ sudo rm -rf *
   letter
 }
 
+#a()() // function
+#range().map // builtin function
+#l.zip(r).map( // method
+  ((a,b)) => a + b // TODO lambda
+)
+#(a, c: b) // tagged
+#a.b // field

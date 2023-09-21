@@ -237,7 +237,7 @@
      (url) @typst-ts-markup-url-face
      (emph) @typst-ts-markup-emphasis-face
      (strong) @typst-ts-markup-strong-face
-     (item) @typst-ts-markup-item-face
+     (item "item" @typst-ts-markup-item-face)
      (term
       "item" @typst-ts-markup-term-indicator-face
       term: (text) @typst-ts-markup-term-term-face
@@ -267,7 +267,7 @@
      (none) @font-lock-constant-face
      (auto) @font-lock-constant-face
      (ident) @font-lock-variable-use-face
-     
+
      ;; operator
      (in ["in" "not"] @font-lock-keyword-face)
      (and "and" @font-lock-keyword-face)
@@ -292,7 +292,15 @@
      (show "show" @font-lock-keyword-face)
      (set "set" @font-lock-keyword-face)
      (return "return" @font-lock-keyword-face)
-     (flow ["break" "continue"] @font-lock-keyword-face))
+     (flow ["break" "continue"] @font-lock-keyword-face)
+
+     ;; TODO lambda
+     (call ;; function
+      item: (ident) @font-lock-function-call-face)
+     (call ;; method
+      item: (field field: (ident) @font-lock-function-call-face))
+     (tagged field: (ident) @font-lock-variable-name-face)
+     (field field: (ident) @font-lock-constant-face))
     ))
 
 (defun typst-ts-mode-comment-setup()
