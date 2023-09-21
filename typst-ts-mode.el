@@ -166,6 +166,11 @@
   "Face for linebreak."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-escape-face
+  '((t :inherit escape-glyph))
+  "Face for linebreak."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-raw-indicator-face
   '((t :inherit shadow))
   "Face for rawblock and rawspan indicator."
@@ -221,6 +226,22 @@
   "Face for reference."
   :group 'typst-ts-faces)
 
+;; Code Faces ===================================================================
+
+(defface typst-ts-code-indicator-face
+  '((t :inherit shadow))
+  "Face for code indicator #."
+  :group 'typst-ts-faces)
+
+
+;; Math Faces ===================================================================
+
+(defface typst-ts-math-indicator-face
+  '((t :inherit shadow))
+  "Face for math indicator $."
+  :group 'typst-ts-faces)
+
+
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
@@ -245,6 +266,7 @@
       (text) @typst-ts-markup-term-description-face)
      (quote) @typst-ts-markup-quote-face
      (linebreak) @typst-ts-markup-linebreak-face
+     (escape) @typst-ts-markup-escape-face
      (raw_span
       "`" @typst-ts-markup-rawspan-indicator-face
       (blob) @typst-ts-markup-rawspan-blob-face
@@ -257,9 +279,12 @@
      (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
      (ref) @typst-ts-markup-reference-face)
 
+    ;; please note that some feature there also in the math mode
     :language typst
     :feature code
-    ((number) @font-lock-number-face
+    ("#" @typst-ts-code-indicator-face
+     ;; "end" @typst-ts-code-indicator-face ;; "end" is nothing but only a indicator
+     (number) @font-lock-number-face
      (string) @font-lock-string-face
      (content ["[" "]"] @font-lock-punctuation-face)
      (builtin) @font-lock-builtin-face
@@ -267,6 +292,11 @@
      (none) @font-lock-constant-face
      (auto) @font-lock-constant-face
      (ident) @font-lock-variable-use-face
+
+     ["(" ")" "{" "}"] @font-lock-punctuation-face
+     ["," ";" ".." ":" "sep"] @font-lock-punctuation-face
+     "assign" @font-lock-punctuation-face
+     (field "." @font-lock-punctuation-face)
 
      ;; operator
      (in ["in" "not"] @font-lock-keyword-face)
@@ -301,7 +331,18 @@
       item: (field field: (ident) @font-lock-function-call-face))
      (tagged field: (ident) @font-lock-variable-name-face)
      (field field: (ident) @font-lock-constant-face))
-    ))
+
+    :language typst
+    :feature math
+    ((math "$" @typst-ts-math-indicator-face)
+     
+     (fraction "/" @font-lock-operator-face)
+     (fac "!" @font-lock-operator-face)
+     (attach ["^" "_"] @font-lock-operator-face)
+     (align) @font-lock-operator-face
+     
+     (symbol) @font-lock-constant-face
+     (letter) @font-lock-constant-face)))
 
 (defun typst-ts-mode-comment-setup()
   "Setup comment related stuffs for typst-ts-mode."
@@ -340,12 +381,7 @@
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
               ;; TODO
-              '((comment common markup code)
-                ;; (markup code)
-                ;; (builtin)
-                ;; (operator ponctuation)
-                ;; (bracket delimiter error function operator property variable)
-                ))
+              '((comment common markup code math)))
 
   (treesit-major-mode-setup))
 

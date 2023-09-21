@@ -30,9 +30,9 @@
 (mul "*" @operator)                           ;; DONE code
 (div "/" @operator)                           ;; DONE code
 (cmp ["==" "<=" ">=" "!=" "<" ">"] @operator) ;; DONE code
-(fraction "/" @operator)                      ;; TODO math
-(fac "!" @operator)                           ;; TODO math
-(attach ["^" "_"] @operator)                  ;; TODO math
+(fraction "/" @operator)                      ;; DONE math
+(fac "!" @operator)                           ;; DONE math
+(attach ["^" "_"] @operator)                  ;; DONE math
 (wildcard) @operator                          ;; DONE code
 
 ; VALUE
@@ -61,19 +61,19 @@
 (strong "*" @operator) @markup.bold ;; DONE markup 
 (item) @markup.list                 ;; DONE markup
 (term) @markup.list                 ;; DONE markup
-(symbol) @constant.character        ;; TODO math
+(symbol) @constant.character        ;; DONE math
 (shorthand) @constant.builtin       ;; DONE common
 (quote) @markup.quote               ;; DONE markup
-(align) @operator                   ;; TODO math
-(letter) @constant.character        ;; TODO math
+(align) @operator                   ;; DONE math
+(letter) @constant.character        ;; DONE math
 (linebreak) @constant.builtin       ;; DONE markup
 
-(math "$" @operator)
-"#" @operator
-"end" @operator
+(math "$" @operator) ;; DONE math
+"#" @operator        ;; DONE code
+"end" @operator      ;; DONE code
 
-(escape) @constant.character.escape
-["(" ")" "{" "}"] @ponctuation.bracket
-["," ";" ".." ":" "sep"] @ponctuation.delimiter
-"assign" @ponctuation
-(field "." @ponctuation)
+(escape) @constant.character.escape             ;; DONE markup
+["(" ")" "{" "}"] @ponctuation.bracket          ;; DONE 
+["," ";" ".." ":" "sep"] @ponctuation.delimiter ;; DONE
+"assign" @ponctuation                           ;; DONE
+(field "." @ponctuation)                        ;; DONE

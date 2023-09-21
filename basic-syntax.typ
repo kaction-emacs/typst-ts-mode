@@ -20,6 +20,9 @@ sudo rm -rf *
 <label> // label
 @reference // reference
 
+Hello\nWorld // escape
+
+
 #(4.2) // number
 #"El Psy Kongaroo" // string
 #[El Psy Kongraoo] // content
@@ -70,3 +73,9 @@ sudo rm -rf *
 )
 #(a, c: b) // tagged
 #a.b // field
+
+$a$ // math
+$ 1 + 1 = 2 $
+$ E = m * c^2 $
+$eq.not(0)$
+$ cal(A) := { x in RR | x "is natural" } $
