@@ -66,6 +66,8 @@
   :set-after typst-ts-markup-header-same-height
   :group 'typst-ts-faces)
 
+;; Markup Faces =================================================================
+
 (defface typst-ts-markup-header-face
   '((t :weight bold))
   "The basic face for Typst ts markup headers.")
@@ -167,58 +169,57 @@
 (defface typst-ts-markup-raw-indicator-face
   '((t :inherit shadow))
   "Face for rawblock and rawspan indicator."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-raw-blob-face
   '((t :inherit variable-pitch))
   "Face for rawblock and rawspan blob."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawblock-face
   '((t :inherit normal))
   "Face for rawblock."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawblock-indicator-face
   '((t :inherit typst-ts-markup-raw-indicator-face))
   "Face for rawblock indicator."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawblock-blob-face
   '((t :inherit typst-ts-markup-raw-blob-face))
   "Face for rawblock blob."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-face
   '((t :inherit normal))
   "Face for rawspan."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-indicator-face
   '((t :inherit typst-ts-markup-raw-indicator-face))
   "Face for rawspan indicator."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-lang-face
   '((t :inherit variable-pitch))
   "Face for rawspan ident."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-blob-face
   '((t :inherit typst-ts-markup-raw-blob-face))
   "Face for rawspan blob."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-label-face
   '((t :inherit homoglyph))
   "Face for label."
-  :group 'typst-ts-face)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-reference-face
   '((t :inherit homoglyph))
   "Face for reference."
-  :group 'typst-ts-face)
-
+  :group 'typst-ts-faces)
 
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
@@ -255,6 +256,30 @@
       "```" @typst-ts-markup-rawblock-indicator-face)
      (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
      (ref) @typst-ts-markup-reference-face)
+
+    :language typst
+    :feature code
+    ((number) @font-lock-number-face
+     (string) @font-lock-string-face
+     (content ["[" "]"] @font-lock-punctuation-face)
+     (bool) @font-lock-constant-face
+     (builtin) @font-lock-builtin-face
+     (none) @font-lock-constant-face
+     (auto) @font-lock-constant-face
+     (ident) @font-lock-variable-use-face
+     
+     ;; operator
+     (in ["in" "not"] @font-lock-keyword-face)
+     (and "and" @font-lock-keyword-face)
+     (or "or" @font-lock-keyword-face)
+     (not "not" @font-lock-keyword-face)
+     (sign ["+" "-"] @font-lock-operator-face)
+     (add "+" @font-lock-operator-face)
+     (sub "-" @font-lock-operator-face)
+     (mul "*" @font-lock-operator-face)
+     (div "/" @font-lock-operator-face)
+     (cmp ["==" "<=" ">=" "!=" "<" ">"] @font-lock-operator-face)
+     (wildcard) @font-lock-operator-face)
     ))
 
 (defun typst-ts-mode-comment-setup()
@@ -294,7 +319,7 @@
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
               ;; TODO
-              '((comment common markup)
+              '((comment common markup code)
                 ;; (markup code)
                 ;; (builtin)
                 ;; (operator ponctuation)
