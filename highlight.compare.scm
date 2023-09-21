@@ -7,17 +7,17 @@
 (comment) @comment
 
 ; CONTROL
-(let "let" @keyword.storage.type)
-(branch ["if" "else"] @keyword.control.conditional)
-(while "while" @keyword.control.repeat)
-(for ["for" "in"] @keyword.control.repeat)
-(import "import" @keyword.control.import)
-(as "as" @keyword.operator)
-(include "include" @keyword.control.import)
-(show "show" @keyword.control)
-(set "set" @keyword.control)
-(return "return" @keyword.control)
-(flow ["break" "continue"] @keyword.control)
+(let "let" @keyword.storage.type)                   ;; DONE code
+(branch ["if" "else"] @keyword.control.conditional) ;; DONE code
+(while "while" @keyword.control.repeat)             ;; DONE code
+(for ["for" "in"] @keyword.control.repeat)          ;; DONE code
+(import "import" @keyword.control.import)           ;; DONE code
+(as "as" @keyword.operator)                         ;; DONE code
+(include "include" @keyword.control.import)         ;; DONE code
+(show "show" @keyword.control)                      ;; DONE code
+(set "set" @keyword.control)                        ;; DONE code
+(return "return" @keyword.control)                  ;; DONE code
+(flow ["break" "continue"] @keyword.control)        ;; DONE code
 
 ; OPERATOR
 (in ["in" "not"] @keyword.operator)           ;; DONE code

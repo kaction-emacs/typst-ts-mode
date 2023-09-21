@@ -41,4 +41,26 @@ sudo rm -rf *
 #if 2 > 1 [] // cmp
 #import "a": * // wildcard
 
-#let a = b 
+#let a = b  // let
+#if b {} else {} // branch
+#while n < 10 { // while
+  (n,)
+}
+#for i in a {} // for
+#import "a": a, b // import
+#import "a.lib" as b // as
+#include "a" // include
+#show: columns.with(2) // show
+#set text(a: 0) // set
+#let a() = { // return
+  return 2
+}
+#for letter in "abc nope" { // flow
+  if letter == " " {
+    break
+  } else if letter == "a" {
+    continue
+  }
+  letter
+}
+

@@ -262,8 +262,8 @@
     ((number) @font-lock-number-face
      (string) @font-lock-string-face
      (content ["[" "]"] @font-lock-punctuation-face)
-     (bool) @font-lock-constant-face
      (builtin) @font-lock-builtin-face
+     (bool) @font-lock-constant-face
      (none) @font-lock-constant-face
      (auto) @font-lock-constant-face
      (ident) @font-lock-variable-use-face
@@ -279,7 +279,20 @@
      (mul "*" @font-lock-operator-face)
      (div "/" @font-lock-operator-face)
      (cmp ["==" "<=" ">=" "!=" "<" ">"] @font-lock-operator-face)
-     (wildcard) @font-lock-operator-face)
+     (wildcard) @font-lock-operator-face
+
+     ;; control
+     (let "let" @font-lock-keyword-face)
+     (branch ["if" "else"] @font-lock-keyword-face)
+     (while "while" @font-lock-keyword-face)
+     (for ["for" "in"] @font-lock-keyword-face)
+     (import "import" @font-lock-keyword-face)
+     (as "as" @font-lock-keyword-face)
+     (include "include" @font-lock-keyword-face)
+     (show "show" @font-lock-keyword-face)
+     (set "set" @font-lock-keyword-face)
+     (return "return" @font-lock-keyword-face)
+     (flow ["break" "continue"] @font-lock-keyword-face))
     ))
 
 (defun typst-ts-mode-comment-setup()
