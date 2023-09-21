@@ -36,8 +36,13 @@
   :group 'languages)
 
 (defgroup typst-ts-markup nil
-  "Tree Sitter enabled Typst Writing."
+  "Typst tree sitter markup."
   :prefix "typst-ts-markup"
+  :group 'typst-ts)
+
+(defgroup typst-ts-faces nil
+  "Typst tree sitter faces."
+  :prefix "typst-ts-faces"
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-indent-offset 4
@@ -48,7 +53,7 @@
 (defcustom typst-ts-markup-header-same-height nil
   "Whether to make header face in markup context share the same height."
   :type 'boolean
-  :group 'typst-ts-markup)
+  :group 'typst-ts-faces)
 
 (defcustom typst-ts-markup-header-scale
   '(2.0 1.7 1.4 1.1 1.0 1.0)
@@ -59,7 +64,7 @@
          (when typst-ts-markup-header-same-height
            (set-default symbol (make-list (length value) 1.0))))
   :set-after typst-ts-markup-header-same-height
-  :group 'typst-ts-markup)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face
   '((t :weight bold))
@@ -68,47 +73,88 @@
 (defface typst-ts-markup-header-face-1
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 0 typst-ts-markup-header-scale)))
-  "See `typst-ts-markup-header-face'.")
+  "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-2
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 1 typst-ts-markup-header-scale)))
-  "See `typst-ts-markup-header-face'.")
+  "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-3
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 2 typst-ts-markup-header-scale)))
-  "See `typst-ts-markup-header-face'.")
+  "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-4
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 3 typst-ts-markup-header-scale)))
-  "See `typst-ts-markup-header-face'.")
+  "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-5
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 4 typst-ts-markup-header-scale)))
-  "See `typst-ts-markup-header-face'.")
+  "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-6
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 5 typst-ts-markup-header-scale)))
-  "See `typst-ts-markup-header-face'.")
+  "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-shorthand-face
+  '((t :inherit shadow))
+  "Face for linebreak."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-url-face
-  '((t :inherit font-lock-string-face))
+  '((t :inherit link))
   "Face for url."
-  :group 'typst-ts-markup)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-emphasis-face
-  '((t :slant italic))
+  '((t :inherit italic))
   "Face for emphasis."
-  :group 'typst-ts-markup)
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-strong-face
-  '((t :weight bold))
+  '((t :inherit bold))
   "Face for strong."
-  :group 'typst-ts-markup)
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-item-face
+  '((t :inherit shadow))
+  "Face for item."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-term-indicator-face
+  '((t :inherit shadow))
+  "Face for term."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-term-term-face
+  '((t :inherit bold))
+  "Face for term."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-term-description-face
+  '((t :inherit normal))
+  "Face for term."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-quote-face ;; TODO better choice?
+  '((t :inherit shadow))
+  "Face for quote."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-linebreak-face
+  '((t :inherit escape-glyph))
+  "Face for linebreak."
+  :group 'typst-ts-faces)
 
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
@@ -117,20 +163,24 @@
     ((comment) @font-lock-comment-face)
 
     :language typst
+    :feature common
+    ((shorthand) @typst-ts-shorthand-face)
+
+    :language typst
     :feature markup
     ((heading) @typst-ts-markup-header-face
      (url) @typst-ts-markup-url-face
      (emph) @typst-ts-markup-emphasis-face
      (strong) @typst-ts-markup-strong-face
-     ;; (item) @typst-ts-markup-item-face ;; TODO
-     ;; (term) @typst-ts-markup-term-face ;; TODO
-     ;; (symbol) @typst-ts-markup-symbol-face ;; TODO
-     ;; (shorthand) @typst-ts-markup-shorthand-face ;; TODO
-     ;; (quote) @typst-ts-markup-quote-face ;; TODO
-     ;; (align) @typst-ts-markup-align-face ;; TODO
-     ;; (letter) @typst-ts-markup-letter-face ;; TODO
-     ;; (linebreak) @typst-ts-markup-linebreak-face ;; TODO
-     )))
+     (item) @typst-ts-markup-item-face
+     (term
+      "item" @typst-ts-markup-term-indicator-face
+      term: (text) @typst-ts-markup-term-term-face
+      ":" @typst-ts-markup-term-indicator-face
+      (text) @typst-ts-markup-term-description-face)
+     (quote) @typst-ts-markup-quote-face
+     (linebreak) @typst-ts-markup-linebreak-face)
+    ))
 
 (defun typst-ts-mode-comment-setup()
   "Setup comment related stuffs for typst-ts-mode."
@@ -169,7 +219,7 @@
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
               ;; TODO
-              '((markup comment)
+              '((markup common comment)
                 ;; (markup code)
                 ;; (builtin)
                 ;; (operator ponctuation)
