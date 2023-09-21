@@ -131,6 +131,14 @@
   "Face for item."
   :group 'typst-ts-faces)
 
+;; NOTE: add a defcustom option to let user choose whether to only fontify the
+;; the whole element
+;; same as `typst-ts-markup-rawspan-face' and `typst-ts-markup-rawblock-face'
+(defface typst-ts-markup-term-face
+  nil
+  "Face for term."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-term-indicator-face
   '((t :inherit shadow))
   "Face for term."
@@ -156,6 +164,51 @@
   "Face for linebreak."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-raw-indicator-face
+  '((t :inherit shadow))
+  "Face for rawblock and rawspan indicator."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-raw-blob-face
+  '((t :inherit variable-pitch))
+  "Face for rawblock and rawspan blob."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawblock-face
+  '((t :inherit normal))
+  "Face for rawblock."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawblock-indicator-face
+  '((t :inherit typst-ts-markup-raw-indicator-face))
+  "Face for rawblock indicator."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawblock-blob-face
+  '((t :inherit typst-ts-markup-raw-blob-face))
+  "Face for rawblock blob."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawspan-face
+  '((t :inherit normal))
+  "Face for rawspan."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawspan-indicator-face
+  '((t :inherit typst-ts-markup-raw-indicator-face))
+  "Face for rawspan indicator."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawspan-lang-face
+  '((t :inherit variable-pitch))
+  "Face for rawspan ident."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-rawspan-blob-face
+  '((t :inherit typst-ts-markup-raw-blob-face))
+  "Face for rawspan blob."
+  :group 'typst-ts-face)
+
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
@@ -179,7 +232,17 @@
       ":" @typst-ts-markup-term-indicator-face
       (text) @typst-ts-markup-term-description-face)
      (quote) @typst-ts-markup-quote-face
-     (linebreak) @typst-ts-markup-linebreak-face)
+     (linebreak) @typst-ts-markup-linebreak-face
+     (raw_span
+      "`" @typst-ts-markup-rawspan-indicator-face
+      (blob) @typst-ts-markup-rawspan-blob-face
+      "`" @typst-ts-markup-rawspan-indicator-face)
+     (raw_blck
+      "```" @typst-ts-markup-rawblock-indicator-face
+      (ident) :? @typst-ts-markup-rawspan-lang-face
+      (blob) @typst-ts-markup-rawblock-blob-face ;; TODO use function to fontify region
+      "```" @typst-ts-markup-rawblock-indicator-face)
+     )
     ))
 
 (defun typst-ts-mode-comment-setup()
@@ -219,7 +282,7 @@
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
               ;; TODO
-              '((markup common comment)
+              '((comment common markup)
                 ;; (markup code)
                 ;; (builtin)
                 ;; (operator ponctuation)
