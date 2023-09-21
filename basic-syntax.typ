@@ -77,5 +77,5 @@ Hello\nWorld // escape
 $a$ // math
 $ 1 + 1 = 2 $
 $ E = m * c^2 $
-$eq.not(0)$
+$ eq.not(0) $
 $ cal(A) := { x in RR | x "is natural" } $

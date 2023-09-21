@@ -241,7 +241,6 @@
   "Face for math indicator $."
   :group 'typst-ts-faces)
 
-
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
@@ -335,14 +334,19 @@
     :language typst
     :feature math
     ((math "$" @typst-ts-math-indicator-face)
-     
+
      (fraction "/" @font-lock-operator-face)
      (fac "!" @font-lock-operator-face)
      (attach ["^" "_"] @font-lock-operator-face)
      (align) @font-lock-operator-face
-     
+
      (symbol) @font-lock-constant-face
      (letter) @font-lock-constant-face)))
+
+(defvar typst-ts-mode--indent-rules
+  `((typst
+     (no-node parent 0)))
+  "Tree-sitter indent rules for `rust-ts-mode'.")
 
 (defun typst-ts-mode-comment-setup()
   "Setup comment related stuffs for typst-ts-mode."
@@ -373,19 +377,29 @@
   (typst-ts-mode-comment-setup)
 
   ;; Electric
-  (setq-local electric-indent-chars
-              (append "{}()[]" electric-indent-chars))
+  (setq-local electric-indent-chars (append "{}()[]$" electric-indent-chars)
+              electric-pair-pairs '((?\" . ?\")
+                                    (?\{ . ?\})
+                                    (?\( . ?\))
+                                    (?\[ . ?\])
+                                    (?\$ . ?\$)))
 
-  ;; Font Lock TODO
+  ;; Font Lock
   (setq-local treesit-font-lock-settings
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
               ;; TODO
               '((comment common markup code math)))
 
+  ;; Indentation
+  (setq-local treesit-simple-indent-rules typst-ts-mode--indent-rules)
+
   (treesit-major-mode-setup))
 
+;; TODO check consistence with typst-mode
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.typ\\'" . typst-ts-mode))
 
 (provide 'typst-ts-mode)
+
+;;; typst-ts-mode.el ends here
