@@ -209,6 +209,17 @@
   "Face for rawspan blob."
   :group 'typst-ts-face)
 
+(defface typst-ts-markup-label-face
+  '((t :inherit homoglyph))
+  "Face for label."
+  :group 'typst-ts-face)
+
+(defface typst-ts-markup-reference-face
+  '((t :inherit homoglyph))
+  "Face for reference."
+  :group 'typst-ts-face)
+
+
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
@@ -242,7 +253,8 @@
       (ident) :? @typst-ts-markup-rawspan-lang-face
       (blob) @typst-ts-markup-rawblock-blob-face ;; TODO use function to fontify region
       "```" @typst-ts-markup-rawblock-indicator-face)
-     )
+     (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
+     (ref) @typst-ts-markup-reference-face)
     ))
 
 (defun typst-ts-mode-comment-setup()
