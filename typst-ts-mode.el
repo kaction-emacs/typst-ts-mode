@@ -35,11 +35,6 @@
   :group 'text
   :group 'languages)
 
-(defgroup typst-ts-markup nil
-  "Typst tree sitter markup."
-  :prefix "typst-ts-markup"
-  :group 'typst-ts)
-
 (defgroup typst-ts-faces nil
   "Typst tree sitter faces."
   :prefix "typst-ts-faces"
@@ -48,6 +43,33 @@
 (defcustom typst-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `json-ts-mode'."
   :type 'integer
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-executable-location "typst"
+  "The location or name(if in `exec-path') for Typst executable."
+  :type 'string
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-compile-options ""
+  "User defined compile options for `typst-ts-mode-compile'.
+The compile options will be passed to the `typst compile' sub-command."
+  :type 'string
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-watch-options ""
+  "User defined compile options for `typst-ts-mode-watch'.
+The compile options will be passed to the `typst watch' sub-command."
+  :type 'string
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-watch-process-name "*Typst-Watch*"
+  "Process name for `typst watch' sub-command."
+  :type 'string
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-watch-process-buffer-name "*Typst-Watch*"
+  "Process buffer name for `typst watch' sub-command."
+  :type 'string
   :group 'typst-ts)
 
 (defcustom typst-ts-markup-header-same-height nil
@@ -469,6 +491,40 @@ TYPES."
   (treesit-node-text node))
 
 ;;;###autoload
+(defun typst-ts-mode-compile ()
+  "Compile current typst file to pdf."
+  (interactive)
+  (compile compile-command))
+
+(defun typst-ts-mode-watch ()
+  "Watch(hot compile) current typst file."
+  (interactive)
+  (start-process-shell-command
+   typst-ts-mode-watch-process-name typst-ts-mode-watch-process-buffer-name
+   (format "%s watch %s %s"
+           typst-ts-mode-executable-location
+           (file-name-nondirectory buffer-file-name)
+           typst-ts-mode-watch-options)))
+
+(defun typst-ts-mode-watch-stop ()
+  "Stop watch process."
+  (interactive)
+  (delete-process typst-ts-mode-watch-process-name))
+
+(defun typst-ts-mode-watch-toggle ()
+  "Toggle watch process."
+  (interactive)
+  (if (get-process typst-ts-mode-watch-process-name)
+      (typst-ts-mode-watch-stop)
+    (typst-ts-mode-watch)))
+
+(defvar typst-ts-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") #'typst-ts-mode-compile)
+    (define-key map (kbd "C-c C-x") #'typst-ts-mode-watch-toggle)
+    map))
+
+;;;###autoload
 (define-derived-mode typst-ts-mode text-mode "Typst"
   "Major mode for editing Typst, powered by tree-sitter."
   :group 'typst
@@ -508,6 +564,12 @@ TYPES."
               `(("Functions" typst-ts-mode--imenu-function-defintion-p nil
                  typst-ts-mode--imenu-name-function)
                 ("Headings" "^heading$" nil typst-ts-mode--imenu-name-function)))
+
+  (setq-local compile-command
+              (format "%s compile %s %s"
+                      typst-ts-mode-executable-location
+                      (file-name-nondirectory buffer-file-name)
+                      typst-ts-mode-compile-options))
 
   (treesit-major-mode-setup))
 
