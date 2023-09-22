@@ -241,6 +241,9 @@
   "Face for math indicator $."
   :group 'typst-ts-faces)
 
+
+;; ==============================================================================
+
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
@@ -253,7 +256,8 @@
 
     :language typst
     :feature markup
-    ((heading) @typst-ts-markup-header-face
+    ((linebreak) @typst-ts-markup-linebreak-face
+     (heading (text) @typst-ts-markup-header-face)
      (url) @typst-ts-markup-url-face
      (emph) @typst-ts-markup-emphasis-face
      (strong) @typst-ts-markup-strong-face
@@ -264,7 +268,6 @@
       ":" @typst-ts-markup-term-indicator-face
       (text) @typst-ts-markup-term-description-face)
      (quote) @typst-ts-markup-quote-face
-     (linebreak) @typst-ts-markup-linebreak-face
      (escape) @typst-ts-markup-escape-face
      (raw_span
       "`" @typst-ts-markup-rawspan-indicator-face
@@ -343,9 +346,75 @@
      (symbol) @font-lock-constant-face
      (letter) @font-lock-constant-face)))
 
-(defvar typst-ts-mode--indent-rules
-  `((typst
-     (no-node parent 0)))
+(defconst typst-ts-mode--bracket-node-types
+  '("block" "content" "group")
+  "Bracket node types.")
+
+(defun typst-ts-mode--node-inside-brackets (parent)
+  "Return the bracket node if the PARENT of node is a bracket or inside bracket.
+Return nil if the node is not inside brackets."
+  (treesit-parent-until
+   parent
+   (lambda (parent)
+     (member (treesit-node-type parent) typst-ts-mode--bracket-node-types))
+   t))
+
+(defun typst-ts-mode--ancestor-in (types &optional return-bol)
+  "Return a function which is suits `treesit-simple-indent-rules' Match.
+An ancestor includes the query node itself.
+If RETURN-BOL is non-nil, then return returns the beginning of line position of
+the corresponding ancestor node that its type is in TYPES, else return the
+corresponding ancestor node.  Return nil if ancestor not matching."
+  (lambda (node parent _bol)
+    (let* ((query-node (if node ;; considering node may be nil
+                           node
+                         parent))
+           (ancestor (treesit-parent-until
+                      query-node
+                      (lambda (parent)
+                        (member (treesit-node-type parent) types))
+                      t)))
+      (if return-bol
+          (if ancestor
+              (save-excursion
+                (goto-char (treesit-node-start ancestor))
+                (back-to-indentation)
+                (point))
+            nil)
+        ancestor))))
+
+(defun typst-ts-mode--ancestor-bol (types)
+  "See `typst-ts-mode--ancestor-in'.
+TYPES."
+  (typst-ts-mode--ancestor-in types t))
+
+(defconst typst-ts-mode--indent-rules
+  ;; you can set `treesit--indent-verbose' variable to t to see which indentation
+  ;; rule matches.
+  (let ((offset typst-ts-mode-indent-offset))
+    `((typst
+       ;; ((lambda (node parent bol)
+       ;;    (message "%s %s %s" (treesit-node-type node) (treesit-node-type parent) bol)
+       ;;    nil) parent-bol 0)
+
+       ((and (node-is ")") (parent-is "group")) parent-bol 0)
+       ((and (node-is "}") (parent-is "block")) parent-bol 0)
+       ((and (node-is "]") (parent-is "content")) parent-bol 0)
+
+       ((and (node-is "item") (parent-is "item")) parent-bol ,offset)
+
+       ((parent-is "block") parent-bol ,offset)
+       ((parent-is "content") parent-bol ,offset)
+       ((parent-is "group") parent-bol ,offset)
+
+       ((and no-node
+             ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
+        ,(typst-ts-mode--ancestor-bol typst-ts-mode--bracket-node-types)
+        ,offset)
+
+       ((and no-node
+             (not ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types)))
+        parent-bol 0))))
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
 (defun typst-ts-mode-comment-setup()
@@ -377,12 +446,13 @@
   (typst-ts-mode-comment-setup)
 
   ;; Electric
-  (setq-local electric-indent-chars (append "{}()[]$" electric-indent-chars)
-              electric-pair-pairs '((?\" . ?\")
-                                    (?\{ . ?\})
-                                    (?\( . ?\))
-                                    (?\[ . ?\])
-                                    (?\$ . ?\$)))
+  (setq-local
+   electric-indent-chars (append "{}()[]$" electric-indent-chars)
+   electric-pair-pairs '((?\" . ?\")
+                         (?\{ . ?\})
+                         (?\( . ?\))
+                         (?\[ . ?\])
+                         (?\$ . ?\$)))
 
   ;; Font Lock
   (setq-local treesit-font-lock-settings
