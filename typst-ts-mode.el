@@ -430,6 +430,17 @@ TYPES."
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/"))))))
 
+(defun typst-ts-mode--imenu-function-defintion-p (node)
+  "Whether NODE is a function defintion node."
+  (let* ((parent-node (treesit-node-parent node))
+         (grandparent-node (treesit-node-parent parent-node)))
+    (and (equal (treesit-node-type node) "ident")
+         (equal (treesit-node-type parent-node) "call")
+         (equal (treesit-node-type grandparent-node) "let"))))
+
+(defun typst-ts-mode--imenu-name-function (node)
+  "Generate name of NODE for displaying in Imenu."
+  (treesit-node-text node))
 
 ;;;###autoload
 (define-derived-mode typst-ts-mode text-mode "Typst"
@@ -463,6 +474,12 @@ TYPES."
 
   ;; Indentation
   (setq-local treesit-simple-indent-rules typst-ts-mode--indent-rules)
+
+  ;; Imenu
+  (setq-local treesit-simple-imenu-settings
+              `(("Functions" typst-ts-mode--imenu-function-defintion-p nil
+                 typst-ts-mode--imenu-name-function)
+                ("Headings" "^heading$" nil typst-ts-mode--imenu-name-function)))
 
   (treesit-major-mode-setup))
 

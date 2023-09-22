@@ -1,4 +1,4 @@
-// This file only serves for testing highlight, and it is not a syntax completion test. 
+// This file only serves for testing highlight, and it is not a syntax completion test.
 
 // comment
 
