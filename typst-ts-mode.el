@@ -265,10 +265,8 @@
     ((shorthand) @typst-ts-shorthand-face)
 
     :language typst
-    :feature markup
-    ((linebreak) @typst-ts-markup-linebreak-face
-     (heading (text) @typst-ts-markup-header-face)
-     (url) @typst-ts-markup-url-face
+    :feature markup-basic
+    ((heading (text) @typst-ts-markup-header-face)
      (emph) @typst-ts-markup-emphasis-face
      (strong) @typst-ts-markup-strong-face
      (item "item" @typst-ts-markup-item-face)
@@ -277,7 +275,6 @@
       term: (text) @typst-ts-markup-term-term-face
       ":" @typst-ts-markup-term-indicator-face
       (text) @typst-ts-markup-term-description-face)
-     (quote) @typst-ts-markup-quote-face
      (escape) @typst-ts-markup-escape-face
      (raw_span
       "`" @typst-ts-markup-rawspan-indicator-face
@@ -291,39 +288,30 @@
      (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
      (ref) @typst-ts-markup-reference-face)
 
+    :language typst
+    :feature markup-standard
+    ((linebreak) @typst-ts-markup-linebreak-face
+     (quote) @typst-ts-markup-quote-face)
+
+    :language typst
+    :feature markup-extended
+    ((url) @typst-ts-markup-url-face)
+
+
     ;; please note that some feature there also in the math mode
     :language typst
-    :feature code
+    :feature code-basic
     ("#" @typst-ts-code-indicator-face
      ;; "end" @typst-ts-code-indicator-face ;; "end" is nothing but only a indicator
-     (number) @font-lock-number-face
      (string) @font-lock-string-face
-     (content ["[" "]"] @font-lock-punctuation-face)
-     (builtin) @font-lock-builtin-face
      (bool) @font-lock-constant-face
      (none) @font-lock-constant-face
      (auto) @font-lock-constant-face
-     (ident) @font-lock-variable-use-face
 
-     ["(" ")" "{" "}"] @font-lock-punctuation-face
-     ["," ";" ".." ":" "sep"] @font-lock-punctuation-face
-     "assign" @font-lock-punctuation-face
-     (field "." @font-lock-punctuation-face)
-
-     ;; operator
      (in ["in" "not"] @font-lock-keyword-face)
      (and "and" @font-lock-keyword-face)
      (or "or" @font-lock-keyword-face)
      (not "not" @font-lock-keyword-face)
-     (sign ["+" "-"] @font-lock-operator-face)
-     (add "+" @font-lock-operator-face)
-     (sub "-" @font-lock-operator-face)
-     (mul "*" @font-lock-operator-face)
-     (div "/" @font-lock-operator-face)
-     (cmp ["==" "<=" ">=" "!=" "<" ">"] @font-lock-operator-face)
-     (wildcard) @font-lock-operator-face
-
-     ;; control
      (let "let" @font-lock-keyword-face)
      (branch ["if" "else"] @font-lock-keyword-face)
      (while "while" @font-lock-keyword-face)
@@ -336,7 +324,6 @@
      (return "return" @font-lock-keyword-face)
      (flow ["break" "continue"] @font-lock-keyword-face)
 
-     ;; TODO lambda
      (call ;; function
       item: (ident) @font-lock-function-call-face)
      (call ;; method
@@ -345,16 +332,45 @@
      (field field: (ident) @font-lock-constant-face))
 
     :language typst
-    :feature math
-    ((math "$" @typst-ts-math-indicator-face)
+    :feature code-standard
+    ((ident) @font-lock-variable-use-face
+     (builtin) @font-lock-builtin-face)
 
-     (fraction "/" @font-lock-operator-face)
+    :language typst
+    :feature code-extended ;; TODO lambda symbol
+    ((number) @font-lock-number-face
+
+     (content ["[" "]"] @font-lock-punctuation-face)
+     (sign ["+" "-"] @font-lock-operator-face)
+     (add "+" @font-lock-operator-face)
+     (sub "-" @font-lock-operator-face)
+     (mul "*" @font-lock-operator-face)
+     (div "/" @font-lock-operator-face)
+     (cmp ["==" "<=" ">=" "!=" "<" ">"] @font-lock-operator-face)
+     (wildcard) @font-lock-operator-face
+
+     ["(" ")" "{" "}"] @font-lock-punctuation-face
+     ["," ";" ".." ":" "sep"] @font-lock-punctuation-face
+     "assign" @font-lock-punctuation-face
+     (field "." @font-lock-punctuation-face))
+
+    :language typst
+    :feature math-basic
+    ((math "$" @typst-ts-math-indicator-face))
+
+    :language typst
+    :feature math-standard
+    ((symbol) @font-lock-constant-face
+     (letter) @font-lock-constant-face)
+
+    :language typst
+    :feature math-extended
+    ((fraction "/" @font-lock-operator-face)
      (fac "!" @font-lock-operator-face)
      (attach ["^" "_"] @font-lock-operator-face)
-     (align) @font-lock-operator-face
+     (align) @font-lock-operator-face)))
 
-     (symbol) @font-lock-constant-face
-     (letter) @font-lock-constant-face)))
+
 
 (defconst typst-ts-mode--bracket-node-types
   '("block" "content" "group")
@@ -475,11 +491,14 @@ TYPES."
                          (?\$ . ?\$)))
 
   ;; Font Lock
+  (setq-local treesit-font-lock-level 4)
   (setq-local treesit-font-lock-settings
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
   (setq-local treesit-font-lock-feature-list
-              ;; TODO
-              '((comment common markup code math)))
+              '((comment common)
+                (markup-basic code-basic math-basic)
+                (markup-standard code-standard math-standard)
+                (markup-extended code-extended math-extended)))
 
   ;; Indentation
   (setq-local treesit-simple-indent-rules typst-ts-mode--indent-rules)

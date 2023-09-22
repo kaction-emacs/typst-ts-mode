@@ -4,7 +4,7 @@
 
 -? $ -> $ // shorthand
 
-// header face (current cannot cope with tailing comment)
+// header face
 = headline
 https://www.google.com // url
 _emph_ // emphasis
@@ -46,7 +46,7 @@ Hello\nWorld // escape
 #let a = b  // let
 #if b {} else {} // branch
 #while n < 10 { // while
-  (n,)
+    (n,)
 }
 #for i in a {} // for
 #import "a": a, b // import
@@ -55,26 +55,26 @@ Hello\nWorld // escape
 #show: columns.with(2) // show
 #set text(a: 0) // set
 #let a() = { // return
-  return 2
+    return 2
 }
 #for letter in "abc nope" { // flow
-  if letter == " " {
-    break
-  } else if letter == "a" {
-    continue
-  }
-  letter
+    if letter == " " {
+        break
+    } else if letter == "a" {
+        continue
+    }
+    letter
 }
 
 #a()() // function
 #range().map // builtin function
 #l.zip(r).map( // method
-  ((a,b)) => a + b // TODO lambda
+    ((a,b)) => a + b // TODO lambda
 )
 #(a, c: b) // tagged
 #a.b // field
 
-$a$ // math
+$ a $ // math
 $ 1 + 1 = 2 $
 $ E = m * c^2 $
 $ eq.not(0) $
