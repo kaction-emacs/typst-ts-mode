@@ -244,6 +244,16 @@
 
 ;; ==============================================================================
 
+;; TODO typst has three modes (namely 'markup', 'code' and 'math')
+;; Currently only add common settings to syntax table
+(defvar typst-ts-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; comment
+    (modify-syntax-entry  ?/     ". 124b"  st)
+    (modify-syntax-entry  ?*     ". 23"    st)
+    (modify-syntax-entry  ?\n    "> b"     st)
+    st))
+
 (defvar typst-ts-mode-font-lock-rules
   '(;; Typst font locking
     :language typst
@@ -446,8 +456,7 @@ TYPES."
 (define-derived-mode typst-ts-mode text-mode "Typst"
   "Major mode for editing Typst, powered by tree-sitter."
   :group 'typst
-  ;; TODO syntax table
-  ;; :syntax-table typst-ts-mode--syntax-table
+  :syntax-table typst-ts-mode-syntax-table
 
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
