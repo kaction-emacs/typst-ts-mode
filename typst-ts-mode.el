@@ -52,13 +52,24 @@
 
 (defcustom typst-ts-mode-compile-options ""
   "User defined compile options for `typst-ts-mode-compile'.
-The compile options will be passed to the `typst compile' sub-command."
+The compile options will be passed to the end of
+`<typst-executable> compile <current-file>' command."
   :type 'string
   :group 'typst-ts)
 
+(defvar typst-ts-mode-before-compile-hook nil
+  "Hook runs after compile.")
+
+(defvar typst-ts-mode-after-compile-hook nil
+  "Hook runs after compile.
+Note the requirement of this hook is the same as `compilation-finish-functions'.
+Also note that this hook runs with typst buffer(the buffer you are editing) as
+the current buffer.")
+
 (defcustom typst-ts-mode-watch-options ""
   "User defined compile options for `typst-ts-mode-watch'.
-The compile options will be passed to the `typst watch' sub-command."
+The compile options will be passed to the
+`<typst-executable> watch <current-file>' sub-command."
   :type 'string
   :group 'typst-ts)
 
@@ -71,6 +82,12 @@ The compile options will be passed to the `typst watch' sub-command."
   "Process buffer name for `typst watch' sub-command."
   :type 'string
   :group 'typst-ts)
+
+(defvar typst-ts-mode-before-watch-hook nil
+  "Hook runs after compile.")
+
+(defvar typst-ts-mode-after-watch-hook nil
+  "Hook runs after compile.")
 
 (defcustom typst-ts-markup-header-same-height nil
   "Whether to make header face in markup context share the same height."
@@ -490,27 +507,83 @@ TYPES."
   "Generate name of NODE for displaying in Imenu."
   (treesit-node-text node))
 
+(defun typst-ts-mode-compile--compilation-finish-function (cur-buffer)
+  "For `typst-ts-mode-after-compile-hook' and `compilation-finish-functions'.
+CUR-BUFFER: original typst buffer, in case user set
+`display-buffer-alist' option for compilation buffer to switch to compilation
+buffer before compilation."
+  (lambda (compilation-buffer msg)
+    (unwind-protect
+        (with-current-buffer cur-buffer
+          (run-hook-with-args 'typst-ts-mode-after-compile-hook compilation-buffer msg))
+      (remove-hook 'compilation-finish-functions
+                   (typst-ts-mode-compile--compilation-finish-function cur-buffer)))))
+
 ;;;###autoload
 (defun typst-ts-mode-compile ()
-  "Compile current typst file to pdf."
+  "Compile current typst file."
   (interactive)
+  (run-hooks typst-ts-mode-before-compile-hook)
+
+  ;; The reason to take such a awkward solution is that `compilation-finish-functions'
+  ;; should be a global variable and also its functions. It doesn't work if we
+  ;; define them inside a let binding.
+  (add-hook 'compilation-finish-functions
+            (typst-ts-mode-compile--compilation-finish-function (current-buffer)))
   (compile compile-command))
 
+;;;###autoload
+(defun typst-ts-mode-preview (file)
+  "Open the result compile file.
+FILE: file path for the result compile file."
+  (interactive (list (concat (file-name-base buffer-file-name) ".pdf")))
+  (browse-url-of-file file))
+
+(defun typst-ts-mode-compile-and-preview--compilation-finish-function (cur-buffer)
+  "For `typst-ts-mode-compile-and-preview' and `compilation-finish-functions'.
+CUR-BUFFER: original typst buffer, in case user set
+`display-buffer-alist' option for compilation buffer to switch to compilation
+buffer before compilation."
+  (lambda (_b _msg)
+    (unwind-protect
+        (with-current-buffer cur-buffer
+          (call-interactively #'typst-ts-mode-preview))
+      (remove-hook 'compilation-finish-functions
+                   (typst-ts-mode-compile-and-preview--compilation-finish-function cur-buffer)))))
+
+(defun typst-ts-mode-compile-and-preview ()
+  "Compile & Preview.
+Assuming the compile output file name is in default style."
+  (interactive)
+  ;; use a local variable version of `compilation-finish-functions' to shadow
+  ;; global version doesn't work
+  (add-hook 'compilation-finish-functions
+            (typst-ts-mode-compile-and-preview--compilation-finish-function
+             (current-buffer)))
+  (typst-ts-mode-compile))
+
+;;;###autoload
 (defun typst-ts-mode-watch ()
   "Watch(hot compile) current typst file."
   (interactive)
+  (run-hooks typst-ts-mode-before-watch-hook)
   (start-process-shell-command
    typst-ts-mode-watch-process-name typst-ts-mode-watch-process-buffer-name
    (format "%s watch %s %s"
            typst-ts-mode-executable-location
            (file-name-nondirectory buffer-file-name)
-           typst-ts-mode-watch-options)))
+           typst-ts-mode-watch-options))
+  (message "Start Watch :3"))
 
+;;;###autoload
 (defun typst-ts-mode-watch-stop ()
   "Stop watch process."
   (interactive)
-  (delete-process typst-ts-mode-watch-process-name))
+  (delete-process typst-ts-mode-watch-process-name)
+  (run-hooks typst-ts-mode-after-watch-hook)
+  (message "Stop Watch :‑."))
 
+;;;###autoload
 (defun typst-ts-mode-watch-toggle ()
   "Toggle watch process."
   (interactive)
@@ -520,8 +593,10 @@ TYPES."
 
 (defvar typst-ts-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-c") #'typst-ts-mode-compile)
-    (define-key map (kbd "C-c C-x") #'typst-ts-mode-watch-toggle)
+    (define-key map (kbd "C-c C-c c") #'typst-ts-mode-compile-and-preview)
+    (define-key map (kbd "C-c C-c C") #'typst-ts-mode-compile)
+    (define-key map (kbd "C-c C-c w") #'typst-ts-mode-watch-toggle)
+    (define-key map (kbd "C-c C-c p") #'typst-ts-mode-preview)
     map))
 
 ;;;###autoload
@@ -565,6 +640,7 @@ TYPES."
                  typst-ts-mode--imenu-name-function)
                 ("Headings" "^heading$" nil typst-ts-mode--imenu-name-function)))
 
+  ;; Compile Command
   (setq-local compile-command
               (format "%s compile %s %s"
                       typst-ts-mode-executable-location
@@ -573,7 +649,6 @@ TYPES."
 
   (treesit-major-mode-setup))
 
-;; TODO check consistence with typst-mode
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.typ\\'" . typst-ts-mode))
 
