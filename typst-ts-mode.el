@@ -613,6 +613,7 @@ PROC: process; OUTPUT: new output from PROC."
           (when typst-ts-mode-display-watch-process-bufer-automatically
             (typst-ts-mode-display-watch-buffer)))))))
 
+;;;###autoload
 (defun typst-ts-mode-display-watch-buffer ()
   "Display typst watch process buffer."
   (interactive)
@@ -650,7 +651,8 @@ PROC: process; OUTPUT: new output from PROC."
   ;; delete associated watch process buffer and window
   (let ((window (get-buffer-window typst-ts-mode-watch-process-buffer-name)))
     (kill-buffer typst-ts-mode-watch-process-buffer-name)
-    (delete-window window))
+    (when window
+      (delete-window window)))
   (run-hooks typst-ts-mode-after-watch-hook)
   (message "Stop Watch :‑."))
 
@@ -670,6 +672,7 @@ PROC: process; OUTPUT: new output from PROC."
         '(1 2 3))
   "Regexp for Error in compilation buffer.")
 
+;;;###autoload
 (define-compilation-mode typst-ts-compilation-mode "Typst Compilation"
   "Customized major mode for typst watch compilation."
   (setq-local compilation-error-regexp-alist-alist nil)
@@ -678,6 +681,7 @@ PROC: process; OUTPUT: new output from PROC."
   (setq-local compilation-error-regexp-alist nil)
   (add-to-list 'compilation-error-regexp-alist 'typst-error))
 
+;;;###autoload
 (defvar typst-ts-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c c") #'typst-ts-mode-compile-and-preview)
