@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'compile)
 
 (defgroup typst-ts nil
   "Tree Sitter enabled Typst Writing."
@@ -73,6 +74,7 @@ The compile options will be passed to the
   :type 'string
   :group 'typst-ts)
 
+
 (defcustom typst-ts-mode-watch-process-name "*Typst-Watch*"
   "Process name for `typst watch' sub-command."
   :type 'string
@@ -81,6 +83,20 @@ The compile options will be passed to the
 (defcustom typst-ts-mode-watch-process-buffer-name "*Typst-Watch*"
   "Process buffer name for `typst watch' sub-command."
   :type 'string
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-display-watch-process-bufer-automatically t
+  "Whether the typst watch process buffer should be displayed automatically.
+This means the buffer will be displayed when error occurs, hide when error
+is eliminated."
+  :type 'boolean
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-display-watch-process-buffer-parameters
+  `(display-buffer-at-bottom
+    (window-height . fit-window-to-buffer))
+  "Display buffer parameters."
+  :type 'symbol
   :group 'typst-ts)
 
 (defvar typst-ts-mode-before-watch-hook nil
@@ -409,8 +425,6 @@ The compile options will be passed to the
      (attach ["^" "_"] @font-lock-operator-face)
      (align) @font-lock-operator-face)))
 
-
-
 (defconst typst-ts-mode--bracket-node-types
   '("block" "content" "group")
   "Bracket node types.")
@@ -530,7 +544,12 @@ buffer before compilation."
   ;; define them inside a let binding.
   (add-hook 'compilation-finish-functions
             (typst-ts-mode-compile--compilation-finish-function (current-buffer)))
-  (compile compile-command))
+  (compile
+   (format "%s compile %s %s"
+           typst-ts-mode-executable-location
+           (file-name-nondirectory buffer-file-name)
+           typst-ts-mode-compile-options)
+   'typst-ts-compilation-mode))
 
 ;;;###autoload
 (defun typst-ts-mode-preview (file)
@@ -551,6 +570,7 @@ buffer before compilation."
       (remove-hook 'compilation-finish-functions
                    (typst-ts-mode-compile-and-preview--compilation-finish-function cur-buffer)))))
 
+;;;###autoload
 (defun typst-ts-mode-compile-and-preview ()
   "Compile & Preview.
 Assuming the compile output file name is in default style."
@@ -562,17 +582,64 @@ Assuming the compile output file name is in default style."
              (current-buffer)))
   (typst-ts-mode-compile))
 
+(defun typst-ts-mode--watch-process-filter (proc output)
+  "Filter the `typst watch' process output.
+Only error will be transported to the process buffer.
+See `(info \"(elisp) Filter Functions\")'.
+PROC: process; OUTPUT: new output from PROC."
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (erase-buffer)
+      (let ((window (get-buffer-window))
+            (re (rx bol "error:" (+ not-newline) "\n   ┌─ "
+                    (+ not-newline) ":" ;; file
+                    (+ num) ":"         ;; start-line
+                    (+ num) "\n"
+                    (+ (+ (or blank num)) "│" (* not-newline) "\n")))
+            (next-match-start-pos 0)
+            res-output)
+        (while (string-match re output next-match-start-pos)
+          (setq res-output (concat
+                            res-output
+                            (when res-output "\n")
+                            (substring output (match-beginning 0) (match-end 0)))
+                next-match-start-pos (match-end 0)))
+        ;; Insert the Error text
+        (if (not res-output)
+            (when (and typst-ts-mode-display-watch-process-bufer-automatically window)
+              (delete-window window))
+          (insert res-output)
+          (goto-char (point-min))
+          (when typst-ts-mode-display-watch-process-bufer-automatically
+            (typst-ts-mode-display-watch-buffer)))))))
+
+(defun typst-ts-mode-display-watch-buffer ()
+  "Display typst watch process buffer."
+  (interactive)
+  (if (not (buffer-live-p (get-buffer typst-ts-mode-watch-process-buffer-name)))
+      (user-error "The typst watch process buffer %s is not alive!" typst-ts-mode-watch-process-buffer-name)
+    (display-buffer
+     typst-ts-mode-watch-process-buffer-name
+     typst-ts-mode-display-watch-process-buffer-parameters)))
+
 ;;;###autoload
 (defun typst-ts-mode-watch ()
   "Watch(hot compile) current typst file."
   (interactive)
   (run-hooks typst-ts-mode-before-watch-hook)
-  (start-process-shell-command
-   typst-ts-mode-watch-process-name typst-ts-mode-watch-process-buffer-name
-   (format "%s watch %s %s"
-           typst-ts-mode-executable-location
-           (file-name-nondirectory buffer-file-name)
-           typst-ts-mode-watch-options))
+  (with-current-buffer (get-buffer-create typst-ts-mode-watch-process-buffer-name)
+    (erase-buffer)
+    (unless (eq major-mode 'typst-ts-compilation-mode)
+      (typst-ts-compilation-mode)
+      (read-only-mode -1)))
+  (set-process-filter
+   (start-process-shell-command
+    typst-ts-mode-watch-process-name typst-ts-mode-watch-process-buffer-name
+    (format "%s watch %s %s"
+            typst-ts-mode-executable-location
+            (file-name-nondirectory buffer-file-name)
+            typst-ts-mode-watch-options))
+   'typst-ts-mode--watch-process-filter)
   (message "Start Watch :3"))
 
 ;;;###autoload
@@ -580,6 +647,10 @@ Assuming the compile output file name is in default style."
   "Stop watch process."
   (interactive)
   (delete-process typst-ts-mode-watch-process-name)
+  ;; delete associated watch process buffer and window
+  (let ((window (get-buffer-window typst-ts-mode-watch-process-buffer-name)))
+    (kill-buffer typst-ts-mode-watch-process-buffer-name)
+    (delete-window window))
   (run-hooks typst-ts-mode-after-watch-hook)
   (message "Stop Watch :‑."))
 
@@ -590,6 +661,22 @@ Assuming the compile output file name is in default style."
   (if (get-process typst-ts-mode-watch-process-name)
       (typst-ts-mode-watch-stop)
     (typst-ts-mode-watch)))
+
+(defvar typst-ts-compilation-mode-error
+  (cons (rx bol "error:" (+ not-newline) "\n   ┌─ "
+            (group (+ not-newline)) ":" ;; file
+            (group (+ num)) ":"         ;; start-line
+            (group (+ num)) "\n")       ;; start-col
+        '(1 2 3))
+  "Regexp for Error in compilation buffer.")
+
+(define-compilation-mode typst-ts-compilation-mode "Typst Compilation"
+  "Customized major mode for typst watch compilation."
+  (setq-local compilation-error-regexp-alist-alist nil)
+  (add-to-list 'compilation-error-regexp-alist-alist
+               (cons 'typst-error typst-ts-compilation-mode-error))
+  (setq-local compilation-error-regexp-alist nil)
+  (add-to-list 'compilation-error-regexp-alist 'typst-error))
 
 (defvar typst-ts-mode-map
   (let ((map (make-sparse-keymap)))
