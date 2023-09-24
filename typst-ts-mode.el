@@ -488,6 +488,10 @@ TYPES."
        ((parent-is "content") parent-bol ,offset)
        ((parent-is "group") parent-bol ,offset)
 
+       ;; don't indent raw block
+       ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
+        no-indent 0)
+
        ((and no-node
              ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
         ,(typst-ts-mode--ancestor-bol typst-ts-mode--bracket-node-types)
