@@ -562,7 +562,8 @@ buffer before compilation."
   "Open the result compile file.
 FILE: file path for the result compile file."
   (interactive (list (concat (file-name-base buffer-file-name) ".pdf")))
-  (browse-url-of-file file))
+  ;; don't use `browse-url-of-file', which cannot open non-english documents
+  (browse-url file))
 
 (defun typst-ts-mode-compile-and-preview--compilation-finish-function (cur-buffer)
   "For `typst-ts-mode-compile-and-preview' and `compilation-finish-functions'.
