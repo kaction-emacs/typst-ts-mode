@@ -312,7 +312,7 @@ is eliminated."
     st))
 
 (defvar typst-ts-mode-font-lock-rules
-  '(;; Typst font locking
+  `(;; Typst font locking
     :language typst
     :feature comment
     ((comment) @font-lock-comment-face)
@@ -323,12 +323,18 @@ is eliminated."
 
     :language typst
     :feature markup-basic
-    ((heading (text) @typst-ts-markup-header-face)
+    (,@(if typst-ts-markup-header-same-height
+           '((heading (text)) @typst-ts-markup-header-face)
+         '((heading "=" (text)) @typst-ts-markup-header-face-1
+           (heading "==" (text)) @typst-ts-markup-header-face-2
+           (heading "===" (text)) @typst-ts-markup-header-face-3
+           (heading "====" (text)) @typst-ts-markup-header-face-4
+           (heading "=====" (text)) @typst-ts-markup-header-face-5))
      (emph) @typst-ts-markup-emphasis-face
      (strong) @typst-ts-markup-strong-face
-     (item "item" @typst-ts-markup-item-face)
+     (item "-" @typst-ts-markup-item-face)
      (term
-      "item" @typst-ts-markup-term-indicator-face
+      "/" @typst-ts-markup-term-indicator-face
       term: (text) @typst-ts-markup-term-term-face
       ":" @typst-ts-markup-term-indicator-face
       (text) @typst-ts-markup-term-description-face)
