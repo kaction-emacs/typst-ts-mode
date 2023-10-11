@@ -107,7 +107,7 @@ is eliminated."
 (defvar typst-ts-mode-after-watch-hook nil
   "Hook runs after compile.")
 
-(defcustom typst-ts-markup-header-same-height nil
+(defcustom typst-ts-markup-header-same-height t
   "Whether to make header face in markup context share the same height."
   :type 'boolean
   :group 'typst-ts-faces)
@@ -120,7 +120,7 @@ is eliminated."
          (set-default symbol value)
          (when typst-ts-markup-header-same-height
            (set-default symbol (make-list (length value) 1.0))))
-  :set-after typst-ts-markup-header-same-height
+  :set-after '(typst-ts-markup-header-same-height)
   :group 'typst-ts-faces)
 
 ;; Markup Faces =================================================================
