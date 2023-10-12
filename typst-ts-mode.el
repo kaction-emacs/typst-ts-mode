@@ -604,7 +604,7 @@ PROC: process; OUTPUT: new output from PROC."
     (with-current-buffer (process-buffer proc)
       (erase-buffer)
       (let ((window (get-buffer-window))
-            (re (rx bol "error:" (+ not-newline) "\n   ┌─ "
+            (re (rx bol "error:" (+ not-newline) "\n" (+ blank) "┌─ "
                     (+ not-newline) ":" ;; file
                     (+ num) ":"         ;; start-line
                     (+ num) "\n"
@@ -678,7 +678,7 @@ PROC: process; OUTPUT: new output from PROC."
     (typst-ts-mode-watch)))
 
 (defvar typst-ts-compilation-mode-error
-  (cons (rx bol "error:" (+ not-newline) "\n   ┌─ "
+  (cons (rx bol "error:" (+ not-newline) "\n" (+ blank) "┌─ "
             (group (+ not-newline)) ":" ;; file
             (group (+ num)) ":"         ;; start-line
             (group (+ num)) "\n")       ;; start-col
