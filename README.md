@@ -16,19 +16,22 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 1. Emacs >= 29
 
 2. Latest [Typst](https://github.com/typst/typst).  
-Why use the latest? Since Typst is still in its frequent development and the 
-tree sitter parser for Typst will also be updated frequently, this package should 
-follow their steps. As a result, one user (among many users) should use the 
-latest Typst executable to match the tree sitter parser change and the change of this package.  
-The version of this package is intentionally set to match the version of Typst release,
-so keep an eye out when updating your packages.
+`typst 0.8.0 (360cc9b9)`
 
 3. Tree Sitter parser for Typst: https://github.com/uben0/tree-sitter-typst  
+commit: `e35aa22`
 
-The following script to compile the parser is stolen from 
-https://github.com/casouri/tree-sitter-module  
+Note this tree sitter parser is included in [tree sitter modules](https://github.com/casouri/tree-sitter-module), so you can use the build script 
+in it to get this parser.  
+You can also use the following script to build the parser too, which is extracted 
+from `tree sitter modules`.  
+<details>
+  <summary>Click me</summary>
+  
+*Note*, you should change the extension of `libtree-sitter-typst.so` from `so` to `dylib`(Darwin) or 
+`dll`(Windows) to match your system specification.
 
-``` shell
+```shell
 git clone --depth=1 --single-branch -b master git@github.com:uben0/tree-sitter-typst.git
 
 cd tree-sitter-typst/src
@@ -54,15 +57,18 @@ else
     cc -fPIC -shared *.o -o "libtree-sitter-typst.so"
 fi
 ```
-Then move the resulting file `libtree-sitter-typst.so` to the directory you put
-for tree sitter parsers. For more information, you should take a look at `(info "(elisp) Language Grammar")` (eval this expression in Emacs).
+
+</details>
+
+
+After building, you can see that there is a file called `typst-sitter-typst.so`(`.so` may also be `.dylib` or `.dll` too). Then move this file to the tree sitter parser directory ( Evaluate expression `(info "(elisp) Language Grammar")` in Emacs to read the info manual of tree sitter language grammar. The infomation of where the tree sitter parsers should be put locates in the first few paragraph of this manual). After that, you can install this package. 
 
 ## Installation
 
 For reference, this is my configuration.
 ``` emacs-lisp
 (use-package typst-ts-mode
-  :straight (:type git :host sourcehut :repo "meow_king/typst-ts-mode")
+  :elpaca (:type git :host sourcehut :repo "meow_king/typst-ts-mode")
   :custom
   (typst-ts-mode-watch-options "--open"))
 ```
@@ -97,8 +103,8 @@ and [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
 6. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale` to control header height. 
 
 ### Consult Imenu Integration
-If you use [consult](https://github.com/minad/consult) and use `consult-iemnu`
-command, you way want this setting.
+If you use `consult-iemnu`
+command [consult](https://github.com/minad/consult), you way want this setting.
 ``` emacs-lisp
 (setq
  consult-imenu-config
@@ -112,5 +118,7 @@ command, you way want this setting.
 
 Here are some resources:
 - [Let’s Write a Tree-Sitter Major Mode - Matering Emacs](https://www.masteringemacs.org/article/lets-write-a-treesitter-major-mode)
-- [ts-query-highlight](https://sr.ht/~meow_king/ts-query-highlight/)
+- [ts-query-highlight](https://sr.ht/~meow_king/ts-query-highlight/)  
+  I wrote this package to highlight tree sitter queries. I use this package to help
+developing `typst-ts-mode`.
 - [combobulate](https://github.com/mickeynp/combobulate)
