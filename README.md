@@ -98,8 +98,7 @@ You can try shell command `typst compile <file> --open && sleep 1` in Emacs to s
 5. `typst-ts-mode-display-watch-process-bufer-automatically`. This is set to `t` by
 default, so the `typst watch` process buffer appear when an error occurs, and disappear
 when there is no error. You may find there is only one error at a time, and it is
-because Typst itself do this style. You may find [auto-save](https://github.com/manateelazycat/auto-save)
-and [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
+because Typst itself do this style. You may find `auto-save-mode`, `auto-save-visited-mode`, [auto-save](https://github.com/manateelazycat/auto-save) or [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
 6. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale` to control header height. 
 
 ### Consult Imenu Integration
