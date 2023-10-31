@@ -100,6 +100,7 @@ default, so the `typst watch` process buffer appear when an error occurs, and di
 when there is no error. You may find there is only one error at a time, and it is
 because Typst itself do this style. You may find `auto-save-mode`, `auto-save-visited-mode`, [auto-save](https://github.com/manateelazycat/auto-save) or [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
 6. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale` to control header height. 
+7. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`
 
 ### Consult Imenu Integration
 If you use `consult-iemnu`
