@@ -16,10 +16,10 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 1. Emacs >= 29
 
 2. Latest [Typst](https://github.com/typst/typst).  
-`typst 0.8.0 (360cc9b9)`
+`typst 0.9.0 (7bb4f6df)`
 
 3. Tree Sitter parser for Typst: https://github.com/uben0/tree-sitter-typst  
-commit: `e35aa22`
+commit: `a96fa35`
 
 Note this tree sitter parser is included in [tree sitter modules](https://github.com/casouri/tree-sitter-module), so you can use the build script 
 in it to get this parser.  
