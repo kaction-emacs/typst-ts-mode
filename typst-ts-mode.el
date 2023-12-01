@@ -123,6 +123,18 @@ is eliminated."
   :set-after '(typst-ts-markup-header-same-height)
   :group 'typst-ts-faces)
 
+;; Common Face ==================================================================
+
+(defface typst-ts-shorthand-face
+  '((t :inherit shadow))
+  "Face for linebreak."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-error-face
+  '((t :inherit font-lock-warning-face))
+  "Face for linebreak."
+  :group 'typst-ts-faces)
+
 ;; Markup Faces =================================================================
 
 (defface typst-ts-markup-header-face
@@ -163,11 +175,6 @@ is eliminated."
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 5 typst-ts-markup-header-scale)))
   "See `typst-ts-markup-header-face'."
-  :group 'typst-ts-faces)
-
-(defface typst-ts-shorthand-face
-  '((t :inherit shadow))
-  "Face for linebreak."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-url-face
@@ -319,7 +326,8 @@ is eliminated."
 
     :language typst
     :feature common
-    ((shorthand) @typst-ts-shorthand-face)
+    ((shorthand) @typst-ts-shorthand-face
+     (ERROR) @typst-ts-error-face)
 
     :language typst
     :feature markup-basic
