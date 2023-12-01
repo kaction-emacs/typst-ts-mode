@@ -76,6 +76,15 @@ The compile options will be passed to the
   :type 'string
   :group 'typst-ts)
 
+(defcustom typst-ts-mode-watch-modeline-indicator-enable t
+  "Whether to enable mode line indicator for typst watch."
+  :type 'boolean
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-watch-modeline-indicator "[Watch]"
+  "Modeline indicator for typst watch."
+  :type 'string
+  :group 'typst-ts)
 
 (defcustom typst-ts-mode-watch-process-name "*Typst-Watch*"
   "Process name for `typst watch' sub-command."
@@ -121,6 +130,12 @@ is eliminated."
          (when typst-ts-markup-header-same-height
            (set-default symbol (make-list (length value) 1.0))))
   :set-after '(typst-ts-markup-header-same-height)
+  :group 'typst-ts-faces)
+
+;; Face =========================================================================
+(defface typst-ts-watch-modeline-indicator-face
+  '((t :inherit (underline bold)))
+  "Face for typst watch modeline indicator."
   :group 'typst-ts-faces)
 
 ;; Common Face ==================================================================
@@ -662,6 +677,11 @@ PROC: process; OUTPUT: new output from PROC."
             (file-name-nondirectory buffer-file-name)
             typst-ts-mode-watch-options))
    'typst-ts-mode--watch-process-filter)
+  ;; add mode line indicator
+  (when typst-ts-mode-watch-modeline-indicator-enable
+    (push
+     (propertize typst-ts-mode-watch-modeline-indicator 'face 'typst-ts-watch-modeline-indicator-face)
+     global-mode-string))
   (message "Start Watch :3"))
 
 ;;;###autoload
@@ -675,6 +695,9 @@ PROC: process; OUTPUT: new output from PROC."
     (when window
       (delete-window window)))
   (run-hooks typst-ts-mode-after-watch-hook)
+  ;; remove mode line indicator
+  (when typst-ts-mode-watch-modeline-indicator-enable
+    (setq global-mode-string (remove typst-ts-mode-watch-modeline-indicator global-mode-string)))
   (message "Stop Watch :‑."))
 
 ;;;###autoload
