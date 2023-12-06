@@ -498,37 +498,36 @@ corresponding ancestor node.  Return nil if ancestor not matching."
 TYPES."
   (typst-ts-mode--ancestor-in types t))
 
-(defconst typst-ts-mode--indent-rules
+(defvar typst-ts-mode--indent-rules
   ;; you can set `treesit--indent-verbose' variable to t to see which indentation
   ;; rule matches.
-  (let ((offset typst-ts-mode-indent-offset))
-    `((typst
-       ;; ((lambda (node parent bol)
-       ;;    (message "%s %s %s" (treesit-node-type node) (treesit-node-type parent) bol)
-       ;;    nil) parent-bol 0)
+  `((typst
+     ;; ((lambda (node parent bol)
+     ;;    (message "%s %s %s" (treesit-node-type node) (treesit-node-type parent) bol)
+     ;;    nil) parent-bol 0)
 
-       ((and (node-is ")") (parent-is "group")) parent-bol 0)
-       ((and (node-is "}") (parent-is "block")) parent-bol 0)
-       ((and (node-is "]") (parent-is "content")) parent-bol 0)
+     ((and (node-is ")") (parent-is "group")) parent-bol 0)
+     ((and (node-is "}") (parent-is "block")) parent-bol 0)
+     ((and (node-is "]") (parent-is "content")) parent-bol 0)
 
-       ((and (node-is "item") (parent-is "item")) parent-bol ,offset)
+     ((and (node-is "item") (parent-is "item")) parent-bol typst-ts-mode-indent-offset)
 
-       ((parent-is "block") parent-bol ,offset)
-       ((parent-is "content") parent-bol ,offset)
-       ((parent-is "group") parent-bol ,offset)
+     ((parent-is "block") parent-bol typst-ts-mode-indent-offset)
+     ((parent-is "content") parent-bol typst-ts-mode-indent-offset)
+     ((parent-is "group") parent-bol typst-ts-mode-indent-offset)
 
-       ;; don't indent raw block
-       ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
-        no-indent 0)
+     ;; don't indent raw block
+     ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
+      no-indent 0)
 
-       ((and no-node
-             ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
-        ,(typst-ts-mode--ancestor-bol typst-ts-mode--bracket-node-types)
-        ,offset)
+     ((and no-node
+           ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
+      ,(typst-ts-mode--ancestor-bol typst-ts-mode--bracket-node-types)
+      typst-ts-mode-indent-offset)
 
-       ((and no-node
-             (not ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types)))
-        parent-bol 0))))
+     ((and no-node
+           (not ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types)))
+      parent-bol 0)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
 (defun typst-ts-mode-comment-setup()
