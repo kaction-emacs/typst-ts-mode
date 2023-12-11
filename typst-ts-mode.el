@@ -567,6 +567,65 @@ buffer before compilation."
       (remove-hook 'compilation-finish-functions
                    (typst-ts-mode-compile--compilation-finish-function cur-buffer)))))
 
+(defun typst-ts-mode-meta--dwim (right-p)
+  "Either increase/decrease heading level or move by word.
+RIGHT-P non-nil for increasing heading level, RIGHT-P nil for decreasing."
+  (let ((node nil)
+	(tmp nil))
+    (setq node
+	  ;; = header
+	  (cond
+	   ((string=
+	     (treesit-node-type
+	      (setq tmp (treesit-node-parent
+			 (treesit-node-at (point)))))
+	     "heading")
+	    (treesit-node-child tmp 0))
+	   ;; = header with point at the end of line
+	   ((string=
+	     (treesit-node-type
+	      (setq tmp (treesit-node-parent
+			 (treesit-node-at (line-beginning-position)))))
+	     "heading")
+	    (treesit-node-child tmp 0))
+	   (t nil)))
+    (if node
+	(typst-ts-mode-shift--heading right-p node)
+      (execute-kbd-macro
+       (if right-p
+	   (read-kbd-macro "M-<right>")
+	 (read-kbd-macro "M-<left>"))))))
+
+(defun typst-ts-mode-shift--heading (right-p node)
+  "Increase or decrease the heading level.
+RIGHT-P nil means increase the level while RIGHT-P non-nil means decrease.
+NODE is the heading node.
+This does not handle #heading function."
+  (let* ((heading-string "")
+	 (heading-level 0))
+    (setq heading-level
+	  (length (setq heading-string (treesit-node-text node))))
+    (when (and (= heading-level 1) (not right-p))
+      (user-error "Cannot decrease level 1 heading"))
+    (save-excursion (replace-string-in-region heading-string
+					      (if right-p
+						  (concat heading-string "=")
+						  (substring-no-properties heading-string 1 heading-level))
+					      (treesit-node-start node)
+					      (treesit-node-end node)))))
+;;;###autoload
+(defun typst-ts-mode-shift-heading-right ()
+  "Increase the heading level."
+  (interactive)
+  (typst-ts-mode-meta--dwim t))
+  
+;;;###autoload
+(defun typst-ts-mode-shift-heading-left ()
+  "Decrease heading level."
+  (interactive)
+  (typst-ts-mode-meta--dwim nil))
+
+
 ;;;###autoload
 (defun typst-ts-mode-compile ()
   "Compile current typst file."
@@ -731,6 +790,8 @@ PROC: process; OUTPUT: new output from PROC."
     (define-key map (kbd "C-c C-c C") #'typst-ts-mode-compile)
     (define-key map (kbd "C-c C-c w") #'typst-ts-mode-watch-toggle)
     (define-key map (kbd "C-c C-c p") #'typst-ts-mode-preview)
+    (define-key map (kbd "M-<left>") #'typst-ts-mode-shift-heading-left)
+    (define-key map (kbd "M-<right>") #'typst-ts-mode-shift-heading-right)
     map))
 
 ;;;###autoload
