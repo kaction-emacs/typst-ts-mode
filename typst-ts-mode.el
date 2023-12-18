@@ -50,7 +50,7 @@
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-executable-location "typst"
-  "The location or name(if in `exec-path') for Typst executable."
+  "The location or name(if in variable `exec-path') for Typst executable."
   :type 'string
   :group 'typst-ts)
 
@@ -532,7 +532,7 @@ TYPES."
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
 (defun typst-ts-mode-comment-setup()
-  "Setup comment related stuffs for typst-ts-mode."
+  "Setup comment related stuffs for `typst-ts-mode'."
   ;; stolen from `c-ts-common-comment-setup'
   (setq-local comment-start "// ")
   (setq-local comment-end "")
