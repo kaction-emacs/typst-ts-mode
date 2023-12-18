@@ -116,6 +116,10 @@ command [consult](https://github.com/minad/consult), you way want this setting.
                            (?f "Functions" font-lock-function-name-face))))))
 ```
 
+## Co-Maintainer
+
+[Huan Nguyen](https://sr.ht/~huan)
+
 ## Do you want to develop a new Tree Sitter Major Mode?
 
 Here are some resources:
