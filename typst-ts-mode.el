@@ -649,8 +649,45 @@ See `typst-ts-mode-heading--same-or-higher' for TRAVERSE-FN."
       (user-error "Could not find another heading"))))
 
 (defun typst-ts-mode-heading-up ()
+  "Switch the current heading with the heading above."
   (interactive)
   (typst-ts-mode-meta--dwim 'up))
+
+(defun typst-ts-mode-heading-down ()
+  "Switch the current heading with the heading below."
+  (interactive)
+  (typst-ts-mode-meta--dwim 'down))
+
+(defun typst-ts-mode-heading--down (current-heading)
+  "Switch two heading of same level.
+CURRENT-HEADING and its content with above heading and its content."
+  (let* ((current-heading-start (treesit-node-start current-heading))
+	 (other-heading
+	  (typst-ts-mode-heading--find-same-level
+	   current-heading
+	   #'treesit-node-next-sibling))
+	 (other-heading-start (treesit-node-start other-heading))
+	 (other-heading-end (car (typst-ts-mode-heading--same-or-higher
+				  other-heading
+				  #'treesit-node-next-sibling)))
+	 (current-heading-end (1- other-heading-start))
+	 (current-heading-content (buffer-substring current-heading-start
+						    current-heading-end))
+	 (other-heading-content nil))
+    (setq other-heading-end (if other-heading-end
+				(1- (treesit-node-start other-heading-end))
+			      (point-max)))
+    (setq other-heading-content
+	  (buffer-substring other-heading-start
+			    other-heading-end))
+    (save-excursion
+      (delete-region current-heading-start other-heading-end)
+      (goto-char current-heading-start)
+      (insert other-heading-content)
+      (unless (= ?\n (aref other-heading-content
+			   (1- (length other-heading-content))))
+	(newline))
+      (insert current-heading-content))))
 
 (defun typst-ts-mode-heading--up (current-heading)
   "Switch two heading of same level.
@@ -675,18 +712,21 @@ CURRENT-HEADING and its content with above heading and its content."
     (setq current-heading-content
 	  (buffer-substring current-heading-start
 			    current-heading-end))
-    (delete-region other-heading-start current-heading-end)
-    (goto-char other-heading-start)
-    (if (= ?\n (aref current-heading-content
-		     (1- (length current-heading-content))))
-	(insert current-heading-content)
-      (insert (concat current-heading-content "\n")))
-    (insert other-heading-content)))
+    (save-excursion
+      (delete-region other-heading-start current-heading-end)
+      (goto-char other-heading-start)
+      (insert current-heading-content)
+      (unless (= ?\n (aref current-heading-content
+			   (1- (length current-heading-content))))
+	(newline))
+      (insert other-heading-content))))
 
 (defun typst-ts-mode-meta--dwim (direction)
   "Do something depending on the context with meta key + DIRECTION.
-`left': `typst-ts-mode-heading-decrease'.
-`right': `typst-ts-mode-heading-increase'.
+`left': `typst-ts-mode-heading-decrease',
+`right': `typst-ts-mode-heading-increase',
+`up': `typst-ts-mode-heading-up',
+`down': `typst-ts-mode-heading-down'.
 When there is no relevant action to do it will execute the relevant function in
 the `GLOBAL-MAP' (example: `right-word')."
   (let ((heading (typst-ts-mode-heading--at-point-p))
@@ -704,7 +744,9 @@ the `GLOBAL-MAP' (example: `right-word')."
 	   ('up
 	    (cons (lambda (node) (typst-ts-mode-heading--up node))
 		  "\\[typst-ts-mode-heading-up]"))
-	   ('down "\\[typst-ts-mode-heading-down]")
+	   ('down
+	    (cons (lambda (node) (typst-ts-mode-heading--down node))
+		  "\\[typst-ts-mode-heading-down]"))
 	   (_ (error "%s is not one of: `right' `left'" direction)))))
     (if heading
 	(funcall (car call-me/string) heading)
