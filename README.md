@@ -79,8 +79,10 @@ For reference, this is my configuration.
 `C-c C-c C` : `typst-ts-mode-compile`  
 `C-c C-c w` : `typst-ts-mode-watch-toggle`  
 `C-c C-c p` : `typst-ts-mode-preview`  
-`M-<left>`  : `typst-ts-mode-heading-decrease`
-`M-<right>` : `typst-ts-mode-heading-increase`
+`M-<left>`  : `typst-ts-mode-heading-decrease`  
+`M-<right>` : `typst-ts-mode-heading-increase`  
+`M-<up>`    : `typst-ts-mode-heading-up`  
+`M-<down>`  : `typst-ts-mode-heading-down`  
 
 ## Customization Options
 
