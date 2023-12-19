@@ -610,7 +610,7 @@ This does not handle #heading function."
 	 ('left (substring-no-properties heading-string 1 heading-level))
 	 (_ (error "%s is not one of: `left' `right'" direction)))))))
 
-(defun typst-ts-mode-heading--same-or-higher (node traverse-fn)
+(defun typst-ts-mode-heading--find-same-or-higher (node traverse-fn)
   "Return the first heading that is the same level or higher than NODE.
 `car' will be the found heading node.
 `cdr' will say if it is the same level or not.
@@ -641,9 +641,9 @@ This functions does not check if NODE is actually a heading."
   "Return the first node with the same level as NODE.
 It will report a user-error when it could not find a node
 or it was blocked by its parent heading.
-See `typst-ts-mode-heading--same-or-higher' for TRAVERSE-FN."
+See `typst-ts-mode-heading--find-same-or-higher' for TRAVERSE-FN."
   (let* ((other-heading/level
-	  (typst-ts-mode-heading--same-or-higher node traverse-fn)))
+	  (typst-ts-mode-heading--find-same-or-higher node traverse-fn)))
     (if (cdr other-heading/level)
 	(car other-heading/level)
       (user-error "Could not find another heading"))))
@@ -667,7 +667,7 @@ CURRENT-HEADING and its content with above heading and its content."
 	   current-heading
 	   #'treesit-node-next-sibling))
 	 (other-heading-start (treesit-node-start other-heading))
-	 (other-heading-end (car (typst-ts-mode-heading--same-or-higher
+	 (other-heading-end (car (typst-ts-mode-heading--find-same-or-higher
 				  other-heading
 				  #'treesit-node-next-sibling)))
 	 (current-heading-end (1- other-heading-start))
@@ -699,7 +699,7 @@ CURRENT-HEADING and its content with above heading and its content."
 	   #'treesit-node-prev-sibling))
 	 (other-heading-start (treesit-node-start other-heading))
 	 (other-heading-end (1- current-heading-start))
-	 (current-heading-end (car (typst-ts-mode-heading--same-or-higher
+	 (current-heading-end (car (typst-ts-mode-heading--find-same-or-higher
 				    current-heading
 				    #'treesit-node-next-sibling)))
 	 (current-heading-content nil)
