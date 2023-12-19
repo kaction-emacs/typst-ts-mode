@@ -608,28 +608,108 @@ This does not handle #heading function."
        (pcase direction
 	 ('right (concat heading-string "="))
 	 ('left (substring-no-properties heading-string 1 heading-level))
-	 (_ (error "%s is not one of: `LEFT' `RIGHT'" direction)))))))
+	 (_ (error "%s is not one of: `left' `right'" direction)))))))
+
+(defun typst-ts-mode-heading--same-or-higher (node traverse-fn)
+  "Return the first heading that is the same level or higher than NODE.
+`car' will be the found heading node.
+`cdr' will say if it is the same level or not.
+TRAVERSE-FN dictates in which direction to search.
+`treesit-node-next-sibling' for down.
+`treesit-node-prev-sibling' for up."
+  (let ((iterate (funcall traverse-fn node))
+	(level (typst-ts-mode-heading--level node))
+	(iterate-level nil))
+    (while (and iterate
+		(not (and (string= (treesit-node-type iterate) "heading")
+			  (or (= (setq
+				  iterate-level ;; hack to make it not eval twice
+				  (typst-ts-mode-heading--level iterate))
+				 level)
+			      ;; parent heading or NODE was a leaf
+			      (< iterate-level level)))))
+      (setq iterate (funcall traverse-fn iterate)))
+    ;; there are no level 0 heading
+    (cons iterate (= (if iterate-level iterate-level 0) level))))
+
+(defun typst-ts-mode-heading--level (node)
+  "Get the level of the heading NODE.
+This functions does not check if NODE is actually a heading."
+  (length (treesit-node-text (treesit-node-child node 0))))
+
+(defun typst-ts-mode-heading--find-same-level (node traverse-fn)
+  "Return the first node with the same level as NODE.
+It will report a user-error when it could not find a node
+or it was blocked by its parent heading.
+See `typst-ts-mode-heading--same-or-higher' for TRAVERSE-FN."
+  (let* ((other-heading/level
+	  (typst-ts-mode-heading--same-or-higher node traverse-fn)))
+    (if (cdr other-heading/level)
+	(car other-heading/level)
+      (user-error "Could not find another heading"))))
+
+(defun typst-ts-mode-heading-up ()
+  (interactive)
+  (typst-ts-mode-meta--dwim 'up))
+
+(defun typst-ts-mode-heading--up (current-heading)
+  "Switch two heading of same level.
+CURRENT-HEADING and its content with above heading and its content."
+  (let* ((current-heading-start (treesit-node-start current-heading))
+	 (other-heading
+	  (typst-ts-mode-heading--find-same-level
+	   current-heading
+	   #'treesit-node-prev-sibling))
+	 (other-heading-start (treesit-node-start other-heading))
+	 (other-heading-end (1- current-heading-start))
+	 (current-heading-end (car (typst-ts-mode-heading--same-or-higher
+				    current-heading
+				    #'treesit-node-next-sibling)))
+	 (current-heading-content nil)
+	 (other-heading-content
+	  (buffer-substring other-heading-start
+			    other-heading-end)))
+    (setq current-heading-end (if current-heading-end
+				  (1- (treesit-node-start current-heading-end))
+				(point-max)))
+    (setq current-heading-content
+	  (buffer-substring current-heading-start
+			    current-heading-end))
+    (delete-region other-heading-start current-heading-end)
+    (goto-char other-heading-start)
+    (if (= ?\n (aref current-heading-content
+		     (1- (length current-heading-content))))
+	(insert current-heading-content)
+      (insert (concat current-heading-content "\n")))
+    (insert other-heading-content)))
 
 (defun typst-ts-mode-meta--dwim (direction)
   "Do something depending on the context with meta key + DIRECTION.
-`left': `typst-ts-mode-heading-decrease'
-`right': `typst-ts-mode-heading-increase'
+`left': `typst-ts-mode-heading-decrease'.
+`right': `typst-ts-mode-heading-increase'.
 When there is no relevant action to do it will execute the relevant function in
 the `GLOBAL-MAP' (example: `right-word')."
   (let ((heading (typst-ts-mode-heading--at-point-p))
-	(key nil))
+	;; car function, cdr string of function for `substitute-command-keys'
+	(call-me/string
+	 (pcase direction
+	   ('left
+	    (cons (lambda (node) (typst-ts-mode-heading--increase/decrease
+				  direction (treesit-node-child node 0)))
+		  "\\[typst-ts-mode-heading-decrease]"))
+	   ('right
+	    (cons (lambda (node) (typst-ts-mode-heading--increase/decrease
+				  direction (treesit-node-child node 0)))
+		  "\\[typst-ts-mode-heading-decrease]"))
+	   ('up
+	    (cons (lambda (node) (typst-ts-mode-heading--up node))
+		  "\\[typst-ts-mode-heading-up]"))
+	   ('down "\\[typst-ts-mode-heading-down]")
+	   (_ (error "%s is not one of: `right' `left'" direction)))))
     (if heading
-	(typst-ts-mode-heading--increase/decrease direction (treesit-node-child heading 0))
-      (progn
-	(setq key
-	      (substitute-command-keys
-	       (concat
-		"\\[typst-ts-mode-heading-"
-		(pcase direction
-		  ('left "decrease]")
-		  ('right "increase]")
-		  (_ (error "%s is not one of: `RIGHT' `LEFT'" direction))))))
-	(call-interactively (keymap-lookup global-map key))))))
+	(funcall (car call-me/string) heading)
+      (call-interactively
+       (keymap-lookup global-map (substitute-command-keys (cdr call-me/string)))))))
 
 ;;;###autoload
 (defun typst-ts-mode-heading-increase ()
