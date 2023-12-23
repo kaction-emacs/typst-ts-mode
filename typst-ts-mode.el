@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2023 Ziqi Yang <mr.meowking@anche.no>
 
-;; Version: 0.8.0
+;; Version: 0.10.0
 ;; Author: Ziqi Yang <mr.meowking@anche.no>
 ;; Keywords: typst languages tree-sitter
 ;; URL: https://git.sr.ht/~meow_king/typst-ts-mode
