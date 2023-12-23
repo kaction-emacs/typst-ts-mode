@@ -569,26 +569,16 @@ buffer before compilation."
                    (typst-ts-mode-compile--compilation-finish-function cur-buffer)))))
 
 (defun typst-ts-mode-heading--at-point-p ()
-  "Is thing at point a heading?
+  "Whether the current line is a heading.
 Return the heading node when yes otherwise nil."
-  (let ((node nil))
-    ;; = header
-    (cond
-     ((string=
-       (treesit-node-type
-	(setq node
-	      (treesit-node-parent
-	       (treesit-node-at (point)))))
-       "heading")
-      node)
-     ;; = header with point at the end of line
-     ((string=
-       (treesit-node-type
-	(setq node (treesit-node-parent
-		    (treesit-node-at (line-beginning-position)))))
-       "heading")
-      node)
-     (t nil))))
+  (let ((node (treesit-node-parent
+		           (treesit-node-at
+                (save-excursion
+                  (beginning-of-line-text)
+                  (point))))))
+    (if (string= (treesit-node-type node) "heading")
+        node
+      nil)))
 
 (defun typst-ts-mode-heading--increase/decrease (direction node)
   "Increase or decrease the heading level.
