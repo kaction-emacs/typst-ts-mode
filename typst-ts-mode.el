@@ -44,7 +44,7 @@
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-indent-offset 4
-  "Number of spaces for each indentation step in `json-ts-mode'."
+  "Number of spaces for each indentation step in `typst-ts-mode'."
   :type 'integer
   :group 'typst-ts)
 
