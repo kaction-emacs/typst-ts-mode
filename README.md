@@ -16,10 +16,10 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 1. Emacs >= 29
 
 2. Latest [Typst](https://github.com/typst/typst).  
-`typst 0.9.0 (7bb4f6df)`
+`typst 0.10.0 (70ca0d25)`
 
 3. Tree Sitter parser for Typst: https://github.com/uben0/tree-sitter-typst  
-commit: `a96fa35`
+commit: `c0765e3`
 
 Note this tree sitter parser is included in [tree sitter modules](https://github.com/casouri/tree-sitter-module), so you can use the build script 
 in it to get this parser.  
@@ -94,15 +94,14 @@ For some options you may find useful:
 3. `typst-ts-mode-watch-options`. Set this to `--open` so typst will open the compiled
 file for you.
 4. `typst-ts-mode-compile-options`. Note that setting `--open` has no use for this
-customization variable. What `--open` do in Typst process is to spawn a new thread 
-to open the compiled file with default application corresponding to each platform. With its
-main process finished,  all Typst's sub-process will be killed by Emacs (This is my assumption,
-for more information, you may have to dive into [crate - open](https://crates.io/crates/open)).
-You can try shell command `typst compile <file> --open && sleep 1` in Emacs to see what happened. 
+customization variable. You can execute the shell command 
+`typst compile <file> --open && sleep 1` to view what is happening. 
 5. `typst-ts-mode-display-watch-process-bufer-automatically`. This is set to `t` by
 default, so the `typst watch` process buffer appear when an error occurs, and disappear
-when there is no error. You may find there is only one error at a time, and it is
-because Typst itself do this style. You may find `auto-save-mode`, `auto-save-visited-mode`, [auto-save](https://github.com/manateelazycat/auto-save) or [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
+when there is no error. You may find sometimes there is only one error at a time, and it is
+because Typst itself do this style. You may find `auto-save-visited-mode`,
+[auto-save](https://github.com/manateelazycat/auto-save) or 
+[super-save](https://github.com/bbatsov/super-save) useful (or annoying).
 6. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale` to control header height. 
 7. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`
 

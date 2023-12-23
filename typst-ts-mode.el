@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2023 Ziqi Yang <mr.meowking@anche.no>
 
-;; Version: 0.8.0
+;; Version: 0.10.0
 ;; Author: Ziqi Yang <mr.meowking@anche.no>
 ;; Keywords: typst languages tree-sitter
 ;; URL: https://git.sr.ht/~meow_king/typst-ts-mode
@@ -45,7 +45,7 @@
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-indent-offset 4
-  "Number of spaces for each indentation step in `json-ts-mode'."
+  "Number of spaces for each indentation step in `typst-ts-mode'."
   :type 'integer
   :group 'typst-ts)
 
