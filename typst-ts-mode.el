@@ -578,7 +578,7 @@ buffer before compilation."
   (save-excursion
     (end-of-line)
     (if (re-search-backward "^=+ " nil t)
-	(1- (- (match-end 0) (match-beginning 0)))
+	      (1- (- (match-end 0) (match-beginning 0)))
       0)))
 
 (defconst typst-ts-mode-outline-heading-alist
@@ -633,26 +633,26 @@ Return the heading node when yes otherwise nil."
 When there is no relevant action to do it will execute the relevant function in
 the `GLOBAL-MAP' (example: `right-word')."
   (let ((heading (typst-ts-mode-heading--at-point-p))
-	;; car function, cdr string of function for `substitute-command-keys'
-	(call-me/string
-	 (pcase direction
-	   ('left
-	    (cons #'outline-promote
-		  "\\[typst-ts-mode-heading-decrease]"))
-	   ('right
-	    (cons #'outline-demote
-		  "\\[typst-ts-mode-heading-decrease]"))
-	   ('up
-	    (cons #'outline-move-subtree-up
-		  "\\[typst-ts-mode-heading-up]"))
-	   ('down
-	    (cons #'outline-move-subtree-down
-		  "\\[typst-ts-mode-heading-down]"))
-	   (_ (error "%s is not one of: `right' `left'" direction)))))
+	      ;; car function, cdr string of function for `substitute-command-keys'
+	      (call-me/string
+	       (pcase direction
+	         ('left
+	          (cons #'outline-promote
+		              "\\[typst-ts-mode-heading-decrease]"))
+	         ('right
+	          (cons #'outline-demote
+		              "\\[typst-ts-mode-heading-decrease]"))
+	         ('up
+	          (cons #'outline-move-subtree-up
+		              "\\[typst-ts-mode-heading-up]"))
+	         ('down
+	          (cons #'outline-move-subtree-down
+		              "\\[typst-ts-mode-heading-down]"))
+	         (_ (error "%s is not one of: `right' `left'" direction)))))
     (if heading
-	(call-interactively (car call-me/string))
+	      (call-interactively (car call-me/string))
       (call-interactively
-        (keymap-lookup global-map (substitute-command-keys (cdr call-me/string)))))))
+       (keymap-lookup global-map (substitute-command-keys (cdr call-me/string)))))))
 
 (defun typst-ts-mode-compile ()
   "Compile current typst file."
@@ -875,6 +875,10 @@ PROC: process; OUTPUT: new output from PROC."
   (setq-local outline-regexp typst-ts-mode-outline-regexp)
   (setq-local outline-level #'typst-ts-mode-outline-level)
   (setq-local outline-heading-alist typst-ts-mode-outline-heading-alist)
+  ;; Although without enabling `outline-minor-mode' also works, enabling it
+  ;; provides outline ellipsis
+  (outline-minor-mode t)
+  
   (treesit-major-mode-setup))
 
 ;;;###autoload
