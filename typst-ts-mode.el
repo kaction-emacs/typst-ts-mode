@@ -504,10 +504,6 @@ TYPES."
   ;; you can set `treesit--indent-verbose' variable to t to see which indentation
   ;; rule matches.
   `((typst
-     ;; ((lambda (node parent bol)
-     ;;    (message "%s %s %s" node parent bol)
-     ;;    nil) parent-bol 0)
-
      ((and (node-is ")") (parent-is "group")) parent-bol 0)
      ((and (node-is "}") (parent-is "block")) parent-bol 0)
      ((and (node-is "]") (parent-is "content")) parent-bol 0)
@@ -534,18 +530,18 @@ TYPES."
                                 (line-number-at-pos (point)))))
                          (prev-nonwhite-line-node
                           (treesit-node-at prev-nonwhite-pos))
+                         ((equal (treesit-node-type prev-nonwhite-line-node) "linebreak"))
+                         
                          (prev-nonwhite-line-heading-node
                           (save-excursion
                             (goto-char prev-nonwhite-pos)
                             (back-to-indentation)
                             (treesit-node-at (point))))
+                         ((equal (treesit-node-type prev-nonwhite-line-heading-node) "-"))
                          
                          (prev-nonwhite-line-top-node (treesit-node-parent
                                                        prev-nonwhite-line-heading-node)))
-               (and
-                (equal (treesit-node-type prev-nonwhite-line-top-node) "item")
-                (equal (treesit-node-type prev-nonwhite-line-heading-node) "-")
-                (equal (treesit-node-type prev-nonwhite-line-node) "linebreak")))))
+               (equal (treesit-node-type prev-nonwhite-line-top-node) "item"))))
       parent-bol typst-ts-mode-indent-offset)
 
      ((and no-node
@@ -553,6 +549,14 @@ TYPES."
       ,(typst-ts-mode--ancestor-bol typst-ts-mode--bracket-node-types)
       typst-ts-mode-indent-offset)
 
+     ;; ((lambda (node parent bol)
+     ;;    (message "%s %s %s" node parent bol)
+     ;;    nil) parent-bol 0)
+
+     ((and no-node
+           (parent-is "source_file"))
+      prev-line 0)
+     
      (no-node parent-bol 0)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
@@ -846,11 +850,14 @@ PROC: process; OUTPUT: new output from PROC."
 ARG.
 TODO lack of documentation."
   (interactive "P")
-  (let* ((cur-pos (point))
-         (cur-node (treesit-node-at cur-pos))
-         (cur-node-type (treesit-node-type cur-node)))
+  (when-let* ((cur-pos (point))
+              (cur-node (treesit-node-at cur-pos))
+              (cur-node-type (treesit-node-type cur-node))
+              (parent-node (treesit-node-parent cur-node))  ; could be nil
+              (parent-node-type (treesit-node-type parent-node)))
     (cond
-     ((equal cur-node-type "parbreak")
+     ((or (equal cur-node-type "parbreak")
+          (eq (point) (point-max)))
       (when-let* ((cur-line-bol
                    (save-excursion
                      (back-to-indentation)
