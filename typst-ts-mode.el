@@ -471,8 +471,9 @@ Return nil if the node is not inside brackets."
    t))
 
 (defun typst-ts-mode--ancestor-in (types &optional return-bol)
-  "Return a function which is suits `treesit-simple-indent-rules' Match.
-An ancestor includes the query node itself.
+  "Return a function to check whether one of the ancestors of a node is in TYPES.
+The returned function suits `treesit-simple-indent-rules' Match.
+Ancestors include the query node itself.
 If RETURN-BOL is non-nil, then return returns the beginning of line position of
 the corresponding ancestor node that its type is in TYPES, else return the
 corresponding ancestor node.  Return nil if ancestor not matching."
@@ -504,7 +505,7 @@ TYPES."
   ;; rule matches.
   `((typst
      ;; ((lambda (node parent bol)
-     ;;    (message "%s %s %s" (treesit-node-type node) (treesit-node-type parent) bol)
+     ;;    (message "%s %s %s" node parent bol)
      ;;    nil) parent-bol 0)
 
      ((and (node-is ")") (parent-is "group")) parent-bol 0)
@@ -520,6 +521,24 @@ TYPES."
      ;; don't indent raw block
      ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
       no-indent 0)
+
+     ;; previous line is item type and the ending is a linebreak
+     ((and no-node
+           (lambda (_node _parent bol)
+             (when-let* (((not (eq bol (point-min))))
+                         (prev-line-node (treesit-node-at (- bol 2)))
+                         (prev-line-heading-node
+                          (save-excursion
+                            (previous-logical-line)
+                            (back-to-indentation)
+                            (treesit-node-at (point))))
+                         (prev-line-top-node (treesit-node-parent
+                                              prev-line-heading-node)))
+               (and
+                (equal (treesit-node-type prev-line-top-node) "item")
+                (equal (treesit-node-type prev-line-heading-node) "-")
+                (equal (treesit-node-type prev-line-node) "linebreak")))))
+      parent-bol typst-ts-mode-indent-offset)
 
      ((and no-node
            ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
