@@ -83,6 +83,7 @@ For reference, this is my configuration.
 `M-<right>` : `typst-ts-mode-heading-increase`  
 `M-<up>`    : `typst-ts-mode-heading-up`  
 `M-<down>`  : `typst-ts-mode-heading-down`  
+`TAB`       : `typst-ts-mode-cycle`  
 
 *NOTE*: `outline-minor-mode` is enabled by `typst-ts-mode`, so you can use comamnd 
 defined by `outline-minor-mode` such as `outline-cycle`.
