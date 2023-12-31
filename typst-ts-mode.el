@@ -905,13 +905,23 @@ TODO lack of documentation."
                   (prev-nonwhite-line-bol-column
                    (typst-ts-mode-column-at-pos prev-nonwhite-line-bol)))
         (cond
+         ;; 1. el
+         ;; 2. psy| <- can toggle indent
          ((and
            (equal (treesit-node-type prev-nonwhite-line-top-node) "item")
            (equal (treesit-node-type prev-nonwhite-line-heading-node) "-")
            (not (equal (treesit-node-type prev-nonwhite-line-node) "linebreak")))
-          (if (not (eq cur-line-bol-column prev-nonwhite-line-bol-column))
-              (indent-line-to prev-nonwhite-line-bol-column)
-            (indent-line-to (+ typst-ts-mode-indent-offset prev-nonwhite-line-bol-column)))))))
+          (let (point)
+            (if (not (eq cur-line-bol-column prev-nonwhite-line-bol-column))
+                (progn
+                  (setq point (point))
+                  (indent-line-to prev-nonwhite-line-bol-column)
+                  (goto-char (- point typst-ts-mode-indent-offset)))
+              (setq point (point))
+              (indent-line-to (+ typst-ts-mode-indent-offset
+                                 prev-nonwhite-line-bol-column))
+              (goto-char (+ typst-ts-mode-indent-offset point)))))
+         )))
      (t
       (indent-for-tab-command))
      )))
