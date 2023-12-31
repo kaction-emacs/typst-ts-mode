@@ -500,6 +500,49 @@ corresponding ancestor node.  Return nil if ancestor not matching."
 TYPES."
   (typst-ts-mode--ancestor-in types t))
 
+(defun typst-ts-mode--identation-item-linebreak (_node _parent bol)
+  "Where the current line is underneath a item with linebreak as ending.
+Ignore whitespaces.
+BOL: beginning of the current line.
+See `treesit-simple-indent-rules'."
+  (when-let* ((prev-nonwhite-pos (save-excursion
+                                   (goto-char bol)
+                                   (skip-chars-backward " \r\n\t")
+                                   (1- (point))))
+              ((not (eq
+                     (line-number-at-pos prev-nonwhite-pos)
+                     (line-number-at-pos (point)))))
+              (prev-nonwhite-line-node
+               (treesit-node-at prev-nonwhite-pos))
+              ((equal (treesit-node-type prev-nonwhite-line-node) "linebreak"))
+              
+              (prev-nonwhite-line-heading-node
+               (save-excursion
+                 (goto-char prev-nonwhite-pos)
+                 (back-to-indentation)
+                 (treesit-node-at (point))))
+              ((equal (treesit-node-type prev-nonwhite-line-heading-node) "-"))
+              
+              (prev-nonwhite-line-top-node (treesit-node-parent
+                                            prev-nonwhite-line-heading-node)))
+    (equal (treesit-node-type prev-nonwhite-line-top-node) "item")))
+
+(defun typst-ts-mode--indentation-item-linebreak-get-pos (_node _parent bol)
+  "Get the previous item indentation position.
+See `typst-ts-mode--identation-item-linebreak'.
+BOL: beginning of the current line.
+This function is used instead of `parent-bol' is to make sure in the situation
+where current point is point-max with no newline character at ending can also
+work well.  Example:
+1. el \\$
+    2. psy \\$
+        | <- insert cursor should be here."
+  (save-excursion
+    (goto-char bol)
+    (skip-chars-backward " \r\n\t")
+    (back-to-indentation)
+    (point)))
+
 (defvar typst-ts-mode--indent-rules
   ;; you can set `treesit--indent-verbose' variable to t to see which indentation
   ;; rule matches.
@@ -519,30 +562,8 @@ TYPES."
       no-indent 0)
 
      ;; previous line is item type and the ending is a linebreak
-     ((and no-node
-           (lambda (_node _parent bol)
-             (when-let* ((prev-nonwhite-pos (save-excursion
-                                              (goto-char bol)
-                                              (skip-chars-backward " \r\n\t")
-                                              (1- (point))))
-                         ((not (eq
-                                (line-number-at-pos prev-nonwhite-pos)
-                                (line-number-at-pos (point)))))
-                         (prev-nonwhite-line-node
-                          (treesit-node-at prev-nonwhite-pos))
-                         ((equal (treesit-node-type prev-nonwhite-line-node) "linebreak"))
-                         
-                         (prev-nonwhite-line-heading-node
-                          (save-excursion
-                            (goto-char prev-nonwhite-pos)
-                            (back-to-indentation)
-                            (treesit-node-at (point))))
-                         ((equal (treesit-node-type prev-nonwhite-line-heading-node) "-"))
-                         
-                         (prev-nonwhite-line-top-node (treesit-node-parent
-                                                       prev-nonwhite-line-heading-node)))
-               (equal (treesit-node-type prev-nonwhite-line-top-node) "item"))))
-      parent-bol typst-ts-mode-indent-offset)
+     ((and no-node typst-ts-mode--identation-item-linebreak)
+      typst-ts-mode--indentation-item-linebreak-get-pos typst-ts-mode-indent-offset)
 
      ((and no-node
            ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
