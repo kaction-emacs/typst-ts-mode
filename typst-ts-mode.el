@@ -509,9 +509,10 @@ See `treesit-simple-indent-rules'."
                                    (goto-char bol)
                                    (skip-chars-backward " \r\n\t")
                                    (1- (point))))
-              ((not (eq
-                     (line-number-at-pos prev-nonwhite-pos)
-                     (line-number-at-pos (point)))))
+              ((and (not (eq prev-nonwhite-pos 0)) ;; first line
+                    (not (eq
+                          (line-number-at-pos prev-nonwhite-pos)
+                          (line-number-at-pos (point))))))
               (prev-nonwhite-line-node
                (treesit-node-at prev-nonwhite-pos))
               ((equal (treesit-node-type prev-nonwhite-line-node) "linebreak"))
@@ -887,9 +888,10 @@ TODO lack of documentation."
                                        (goto-char cur-line-bol)
                                        (skip-chars-backward " \r\n\t")
                                        (1- (point))))
-                  ((not (eq
-                         (line-number-at-pos prev-nonwhite-pos)
-                         (line-number-at-pos (point)))))
+                  ((and (not (eq prev-nonwhite-pos 0)) ;; first line
+                        (not (eq
+                              (line-number-at-pos prev-nonwhite-pos)
+                              (line-number-at-pos (point))))))
                   (prev-nonwhite-line-node
                    (treesit-node-at prev-nonwhite-pos))
                   (prev-nonwhite-line-bol
