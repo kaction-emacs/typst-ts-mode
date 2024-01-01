@@ -141,7 +141,7 @@ is eliminated."
   :group 'typst-ts-faces)
 
 (defcustom typst-ts-mode-raw-block-lang-list
-  '(python)  ; TODO
+  '(python rust)  ; TODO
   "Raw Block Lang List."
   :type '(list symbol)
   :group 'typst-ts)
@@ -999,11 +999,13 @@ See `treesit-language-at-point-function'."
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
 
-  (let ((parser (treesit-parser-create 'typst)))
-    (when typst-ts-mode-highlight-raw-block
-      (treesit-parser-add-notifier
-       parser
-       'typst-ts-els-include-dynamically)))
+  (treesit-parser-create 'typst)
+  
+  ;; (let ((parser (treesit-parser-create 'typst)))
+  ;;   (when typst-ts-mode-highlight-raw-block
+  ;;     (treesit-parser-add-notifier
+  ;;      parser
+  ;;      'typst-ts-els-include-dynamically)))
 
   ;; Comments.
   (typst-ts-mode-comment-setup)
@@ -1039,14 +1041,18 @@ See `treesit-language-at-point-function'."
                       (file-name-nondirectory buffer-file-name)
                       typst-ts-mode-compile-options))
   
-  ;; use parser notifier to add font lock dynamically
-  ;; TODO merge indentation rule
-  ;; TODO merge font lock feature list
-
   (setq-local treesit-language-at-point-function
               'typst-ts-mode--language-at-point)
-  (setq-local treesit-range-settings
-              (typst-ts-mode--treesit-range-rules typst-ts-mode-raw-block-lang-list))
+  ;; (setq-local treesit-range-settings
+  ;;             (typst-ts-mode--treesit-range-rules '(python rust)))
+  ;; (setq-local treesit-range-settings
+  ;;             (treesit-range-rules
+  ;;              :host 'typst
+  ;;              :embed 'rust
+  ;;              ;; :local t
+  ;;              '((raw_blck
+  ;;                 ;; lang: (_)
+  ;;                 (blob) @capture))))
 
   ;; Outline
   (setq-local outline-regexp typst-ts-mode-outline-regexp)
