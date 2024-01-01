@@ -33,6 +33,8 @@
 (require 'compile)
 (require 'outline)
 
+(require 'typst-ts-embedding-lang-settings)
+
 (defgroup typst-ts nil
   "Tree Sitter enabled Typst Writing."
   :prefix "typst-ts"
@@ -59,6 +61,11 @@
 The compile options will be passed to the end of
 `<typst-executable> compile <current-file>' command."
   :type 'string
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-highlight-raw-block t
+  "Enable highlighting raw block."
+  :type 'boolean
   :group 'typst-ts)
 
 (defvar typst-ts-mode-before-compile-hook nil
@@ -132,6 +139,12 @@ is eliminated."
            (set-default symbol (make-list (length value) 1.0))))
   :set-after '(typst-ts-markup-header-same-height)
   :group 'typst-ts-faces)
+
+(defcustom typst-ts-mode-raw-block-lang-list
+  '(python)  ; TODO
+  "Raw Block Lang List."
+  :type '(list symbol)
+  :group 'typst-ts)
 
 ;; Face =========================================================================
 (defface typst-ts-watch-modeline-indicator-face
@@ -323,7 +336,6 @@ is eliminated."
 
 
 ;; ==============================================================================
-
 ;; TODO typst has three modes (namely 'markup', 'code' and 'math')
 ;; Currently only add common settings to syntax table
 (defvar typst-ts-mode-syntax-table
@@ -370,7 +382,8 @@ is eliminated."
      (raw_blck
       "```" @typst-ts-markup-rawblock-indicator-face
       (ident) :? @typst-ts-markup-rawspan-lang-face
-      (blob) @typst-ts-markup-rawblock-blob-face ;; TODO use function to fontify region
+      ;; NOTE let embedded language fontify blob
+      ;; (blob) @typst-ts-markup-rawblock-blob-face 
       "```" @typst-ts-markup-rawblock-indicator-face)
      (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
      (ref) @typst-ts-markup-reference-face)
@@ -456,6 +469,12 @@ is eliminated."
      (fac "!" @font-lock-operator-face)
      (attach ["^" "_"] @font-lock-operator-face)
      (align) @font-lock-operator-face)))
+
+(defconst typst-ts-mode-font-lock-feature-list
+  '((comment common)
+    (markup-basic code-basic math-basic)
+    (markup-standard code-standard math-standard)
+    (markup-extended code-extended math-extended)))
 
 (defconst typst-ts-mode--bracket-node-types
   '("block" "content" "group")
@@ -879,7 +898,7 @@ TODO lack of documentation."
               (parent-node-type (treesit-node-type parent-node)))
     (cond
      ((or (equal cur-node-type "parbreak")
-          (eq (point) (point-max)))
+          (eobp))
       (when-let* ((cur-line-bol
                    (save-excursion
                      (back-to-indentation)
@@ -942,6 +961,35 @@ TODO lack of documentation."
     (define-key map (kbd "TAB") #'typst-ts-mode-cycle)
     map))
 
+(defun typst-ts-mode--language-at-point (pos)
+  "Get the treesit language should be used at POS.
+See `treesit-language-at-point-function'."
+  (let ((lang
+         (when-let* ((cur-node (treesit-node-at pos 'typst))
+                     ((equal (treesit-node-type cur-node) "blob"))
+                     (parent-node (treesit-node-parent cur-node))
+                     ((equal (treesit-node-type
+                              (treesit-node-parent cur-node)) "raw_blck"))
+                     (lang-node  ; (indent)
+                      (treesit-node-prev-sibling cur-node)))
+           (intern (treesit-node-text lang-node)))))
+    (if lang lang 'typst)))
+
+(defun typst-ts-mode--treesit-range-rules (langs)
+  ;; from vimscript-ts-mode.el
+  "Create range captures for LANGS."
+  (cl-loop for lang in langs
+           when (treesit-ready-p lang)
+           nconc
+           (treesit-range-rules
+            :host 'typst
+            :embed lang
+            :local t
+            `((raw_blck
+               lang: (_) @_lang
+               (blob) @capture
+               (:equal @_lang ,(symbol-name lang)))))))
+
 ;;;###autoload
 (define-derived-mode typst-ts-mode text-mode "Typst"
   "Major mode for editing Typst, powered by tree-sitter."
@@ -950,7 +998,12 @@ TODO lack of documentation."
 
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
-  (treesit-parser-create 'typst)
+
+  (let ((parser (treesit-parser-create 'typst)))
+    (when typst-ts-mode-highlight-raw-block
+      (treesit-parser-add-notifier
+       parser
+       'typst-ts-els-include-dynamically)))
 
   ;; Comments.
   (typst-ts-mode-comment-setup)
@@ -968,11 +1021,7 @@ TODO lack of documentation."
   (setq-local treesit-font-lock-level 4)
   (setq-local treesit-font-lock-settings
               (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
-  (setq-local treesit-font-lock-feature-list
-              '((comment common)
-                (markup-basic code-basic math-basic)
-                (markup-standard code-standard math-standard)
-                (markup-extended code-extended math-extended)))
+  (setq-local treesit-font-lock-feature-list typst-ts-mode-font-lock-feature-list)
 
   ;; Indentation
   (setq-local treesit-simple-indent-rules typst-ts-mode--indent-rules)
@@ -989,6 +1038,15 @@ TODO lack of documentation."
                       typst-ts-mode-executable-location
                       (file-name-nondirectory buffer-file-name)
                       typst-ts-mode-compile-options))
+  
+  ;; use parser notifier to add font lock dynamically
+  ;; TODO merge indentation rule
+  ;; TODO merge font lock feature list
+
+  (setq-local treesit-language-at-point-function
+              'typst-ts-mode--language-at-point)
+  (setq-local treesit-range-settings
+              (typst-ts-mode--treesit-range-rules typst-ts-mode-raw-block-lang-list))
 
   ;; Outline
   (setq-local outline-regexp typst-ts-mode-outline-regexp)
