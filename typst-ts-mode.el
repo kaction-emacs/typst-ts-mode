@@ -27,6 +27,12 @@
 
 ;; Tree Sitter Support for Typst
 
+;; TODO
+;; 1. search all other TODOS
+;; 2. enable highlighting raw block at startup
+;; 3. rememeber git commit --amend instead directly
+;; 4. add more predefined configurations
+
 ;;; Code:
 
 (require 'treesit)
@@ -49,6 +55,16 @@
 (defcustom typst-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `typst-ts-mode'."
   :type 'integer
+  :group 'typst-ts)
+
+;;; TODO
+(defcustom typst-ts-mode-highlight-raw-blocks-at-startup nil
+  "Whether to highlight raw blocks at *mode startup*.
+Note: this may take some time for documents with lot of raw blocks."
+  :type '(choice (const :tag "don't highlight at all." nil)
+                 (const :tag "highlight all." t)
+                 (const :tag "only highlight pre-configured languages.
+you need `typst-ts-enable-predefined-settings' to be `t' too." defined))
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-executable-location "typst"
@@ -981,14 +997,7 @@ See `treesit-language-at-point-function'."
   (cl-loop for lang in langs
            when (treesit-ready-p lang)
            nconc
-           (treesit-range-rules
-            :host 'typst
-            :embed lang
-            :local t
-            `((raw_blck
-               lang: (_) @_lang
-               (blob) @capture
-               (:equal @_lang ,(symbol-name lang)))))))
+           (typst-ts-els--treesit-range-rules lang)))
 
 ;;;###autoload
 (define-derived-mode typst-ts-mode text-mode "Typst"
@@ -999,13 +1008,11 @@ See `treesit-language-at-point-function'."
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
 
-  (treesit-parser-create 'typst)
-  
-  ;; (let ((parser (treesit-parser-create 'typst)))
-  ;;   (when typst-ts-mode-highlight-raw-block
-  ;;     (treesit-parser-add-notifier
-  ;;      parser
-  ;;      'typst-ts-els-include-dynamically)))
+  (let ((parser (treesit-parser-create 'typst)))
+    (when typst-ts-mode-highlight-raw-block
+      (treesit-parser-add-notifier
+       parser
+       'typst-ts-els-include-dynamically)))
 
   ;; Comments.
   (typst-ts-mode-comment-setup)
@@ -1043,16 +1050,9 @@ See `treesit-language-at-point-function'."
   
   (setq-local treesit-language-at-point-function
               'typst-ts-mode--language-at-point)
-  ;; (setq-local treesit-range-settings
-  ;;             (typst-ts-mode--treesit-range-rules '(python rust)))
-  ;; (setq-local treesit-range-settings
-  ;;             (treesit-range-rules
-  ;;              :host 'typst
-  ;;              :embed 'rust
-  ;;              ;; :local t
-  ;;              '((raw_blck
-  ;;                 ;; lang: (_)
-  ;;                 (blob) @capture))))
+  (setq-local treesit-range-settings
+              (typst-ts-mode--treesit-range-rules
+               (append (mapcar #'car typst-ts-embedding-lang-settings) '(typst))))
 
   ;; Outline
   (setq-local outline-regexp typst-ts-mode-outline-regexp)
@@ -1061,6 +1061,9 @@ See `treesit-language-at-point-function'."
   ;; Although without enabling `outline-minor-mode' also works, enabling it
   ;; provides outline ellipsis
   (outline-minor-mode t)
+
+  ;; TODO
+  ;; (typst-ts-els-include-dynamically nil nil)
   
   (treesit-major-mode-setup))
 

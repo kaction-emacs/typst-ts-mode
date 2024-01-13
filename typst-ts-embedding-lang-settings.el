@@ -17,12 +17,21 @@
 
 ;;; Commentary:
 
-;; This file contains settings for tree sitter languages.
-;; to test settings:
-;; emacs --batch -l ./typst-ts-embedding-lang-settings.el --eval "(typst-ts-embedding-lang-settings-test)"
+;; Functionality to embed other languages in typst documentation.
 
 ;;; Code:
 (require 'treesit)
+
+(defcustom typst-ts-enable-predefined-settings t
+  "Whether to use predefined embedding language settings.
+Use predefined settings will speed up the process of merging tree sitter
+language mode settings.  However, settings (especially feature list)
+may vary with different versions of a language mode, so you may get wrong
+settings.
+If you enable this feature, we highly recommend you to customize it when
+error occurs."
+  :type 'boolean
+  :group 'typst-ts)
 
 (defcustom typst-ts-highlight-raw-block-langs-not-in-settings nil
   "Whether to highlight raw block of language that is not in settings.
@@ -31,6 +40,8 @@ languages in settings."
   :type 'boolean
   :group 'typst-ts)
 
+;; to test settings:
+;; emacs --batch -l ./typst-ts-embedding-lang-settings.el --eval "(typst-ts-embedding-lang-settings-test)"
 (defvar typst-ts-embedding-lang-settings
   '((python . (:feature
                python
@@ -51,7 +62,17 @@ languages in settings."
                ( keyword string)
                ( assignment attribute builtin constant escape-sequence
                  number type)
-               ( bracket delimiter error function operator property variable)))))
+               ( bracket delimiter error function operator property variable))))
+    (bash . (:feature
+             sh-script
+             :font-lock sh-mode--treesit-settings
+             :indentation nil
+             :ts-feature-list
+             '(( comment function)
+               ( command declaration-command keyword string)
+               ( builtin-variable constant heredoc number
+                 string-interpolation variable)
+               ( bracket delimiter misc-punctuation operator)))))
   "Settings for raw block languages.")
 
 
@@ -82,12 +103,33 @@ languages in settings."
                                      treesit-font-lock-feature-list
                                      ts-feature-list))))
 
-(defun typst-ts-els-merge-lang (lang)
+(defun typst-ts-els-merge-lang-settings (lang)
   "Merge embedding language LANG settings."
   (let ((settings (alist-get lang typst-ts-embedding-lang-settings)))
     (if settings
         (typst-ts-els-merge-settings settings)
       (error "Language %s not in settings" lang))))
+
+(defun typst-ts-els--treesit-range-rules (lang)
+  "Get the treesit range rules for LANG.
+LANG: language symbol."
+  (treesit-range-rules
+   :embed lang
+   :host 'typst
+   :local t
+   `((raw_blck
+      lang: (_) @_lang
+      (blob) @capture
+      (:equal @_lang ,(symbol-name lang))))))
+
+(defun typst-ts-els--add-treesit-range-rules (lang)
+  "Add treesit range rule for LANG.
+LANG: language symbol."
+  (setq
+   treesit-range-settings
+   (nconc
+    treesit-range-settings
+    (typst-ts-els--treesit-range-rules lang))))
 
 (defun typst-ts-els--try-get-ts-settings (mode)
   (with-temp-buffer
@@ -108,46 +150,67 @@ languages in settings."
 (defun typst-ts-els-include-dynamically (_ranges _parser)
   "Include language setting dynamically.
 Use this function as one notifier of `treesit-parser-notifiers'."
-  (let ((parser-langs (mapcar #'treesit-parser-language (treesit-parser-list)))
+  ;; `treesit-language-at-point-function' will ensure that the
+  ;; languages in `treesit-parser-list' are valid (not just a random string)
+  (let ((parser-langs
+         (delete-dups
+          (append
+           ;; parsers created by `treesit-language-at-point-function'
+           ;; i.e. parsers cannot be created by `treesit-range-settings'
+           (mapcar #'treesit-parser-language (treesit-parser-list))
+           ;; parsers created by `treesit-range-settings'
+           (mapcar #'treesit-parser-language
+                   (treesit-local-parsers-on (point-min) (point-max))))))
         lang-ts-mode settings)
-    (unless (eq (length parser-langs) (length typst-ts-els--include-languages))
-      (dolist (lang parser-langs)
-        (unless (member lang typst-ts-els--include-languages)
-          (unwind-protect
-              (condition-case _err
-                  ;; first try loading settings from configuration
-                  (progn
-                    (typst-ts-els-merge-lang lang)
-                    (message "Load %s language settings from configuration." lang))
-                (error
-                 ;; if language not in setting or encounter error during loading,
-                 ;; then try your luck to load it
-                 (condition-case err
-                     (progn
-                       (setq lang-ts-mode
-                             (intern (concat (symbol-name lang) "-ts-mode")))
-                       (setq settings
-                             (typst-ts-els--try-get-ts-settings lang-ts-mode))
+    (dolist (lang parser-langs)
+      (unless (member lang typst-ts-els--include-languages)
+        (unwind-protect
+            (condition-case _err
+                ;; first try loading settings from configuration
+                (progn
+                  (unless typst-ts-enable-predefined-settings
+                    (error "User don't allow to load predefined settings"))
+                  ;; note: the `treesit-range-settings' for languages in
+                  ;; predefined settings are already settled at mode start
+                  (typst-ts-els-merge-lang-settings lang)
+                  (message "Load %s language settings from configuration." lang))
+              (error
+               ;; if language not in setting or encounter error during loading,
+               ;; then try your luck to load it
+               (condition-case err
+                   (progn
+                     ;; add range rules
+                     (typst-ts-els--add-treesit-range-rules lang)
+                     ;; delete top level parsers, so range rules works (i.e. local parsers)
+                     ;; so that highlighting will not exceed the desired range
+                     (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
 
-                       (setq treesit-font-lock-settings
-                             (append treesit-font-lock-settings
-                                     (plist-get settings :treesit-font-lock-settings)))
+                     ;; find and merge settings
+                     (setq lang-ts-mode
+                           (intern (concat (symbol-name lang) "-ts-mode")))
+                     (setq settings
+                           (typst-ts-els--try-get-ts-settings lang-ts-mode))
 
-                       (setq treesit-simple-indent-rules
-                             (append treesit-simple-indent-rules
-                                     (plist-get settings :treesit-simple-indent-rules)))
+                     (setq treesit-font-lock-settings
+                           (append treesit-font-lock-settings
+                                   (plist-get settings :treesit-font-lock-settings)))
 
-                       (setq treesit-font-lock-feature-list
-                             (typst-ts-els--merge-features
-                              treesit-font-lock-feature-list
-                              (plist-get settings :treesit-font-lock-feature-list)))
-                       (message "Getting %s language settings luckily succeeded." lang))
-                   (error
-                    (message "Highlighting raw block error: \n%s"
-                             (error-message-string err))))))
-            ;; whatever, we won't load that language again
-            (add-to-list 'typst-ts-els--include-languages lang))
-          )))))
+                     (setq treesit-simple-indent-rules
+                           (append treesit-simple-indent-rules
+                                   (plist-get settings :treesit-simple-indent-rules)))
+
+                     (setq treesit-font-lock-feature-list
+                           (typst-ts-els--merge-features
+                            treesit-font-lock-feature-list
+                            (plist-get settings :treesit-font-lock-feature-list)))
+                     (message "Luckily merged %s language settings." lang))
+                 (error
+                  (message "Loading %s language settings without luck: \n%s"
+                           lang
+                           (error-message-string err))))))
+          ;; whatever, we won't load that language again
+          (add-to-list 'typst-ts-els--include-languages lang))
+        ))))
 
 (defun typst-ts-embedding-lang-settings-test ()
   "Test typst-ts-embedding-lang-settings."
