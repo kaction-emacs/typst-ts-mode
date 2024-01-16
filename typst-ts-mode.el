@@ -33,6 +33,13 @@
 ;; 3. rememeber git commit --amend instead directly
 ;; 4. add more predefined configurations
 
+;; BUGS find:
+;; 
+;; 1. update raw block language will not delete the old local parser
+;;    -> you need to delete the whole raw block to remove the local parser
+;;    -> this is due to the behavior of `treesit--update-ranges-local'
+;;    -> current-haven't thought good way to handle it
+
 ;;; Code:
 
 (require 'treesit)
@@ -988,7 +995,9 @@ See `treesit-language-at-point-function'."
                               (treesit-node-parent cur-node)) "raw_blck"))
                      (lang-node  ; (indent)
                       (treesit-node-prev-sibling cur-node)))
-           (intern (treesit-node-text lang-node)))))
+           (gethash
+            (downcase (treesit-node-text lang-node))
+            typst-ts-els-tag-lang-map))))
     (if lang lang 'typst)))
 
 (defun typst-ts-mode--treesit-range-rules (langs)
@@ -1047,12 +1056,28 @@ See `treesit-language-at-point-function'."
                       typst-ts-mode-executable-location
                       (file-name-nondirectory buffer-file-name)
                       typst-ts-mode-compile-options))
+
+  ;; TODO Load settings before range settings
+  ;; (cl-loop for setting in typst-ts-embedding-lang-settings
+  ;;          for lang = (car setting)
+  ;;          for config = (cdr setting)
+  ;;          when (treesit-ready-p lang)
+  ;;          do
+  ;;          (message "%s %s" lang config)
+  ;;          (ignore-errors
+  ;;            (typst-ts-els-merge-settings config)))
+
+  ;; note we should also add these languages to `typst-ts-els--include-languages'
   
   (setq-local treesit-language-at-point-function
               'typst-ts-mode--language-at-point)
   (setq-local treesit-range-settings
               (typst-ts-mode--treesit-range-rules
-               (append (mapcar #'car typst-ts-embedding-lang-settings) '(typst))))
+               (append
+                (cl-loop for setting in typst-ts-embedding-lang-settings
+                         when (treesit-ready-p (car setting) t)
+                         collect (car setting))
+                '(typst))))
 
   ;; Outline
   (setq-local outline-regexp typst-ts-mode-outline-regexp)
@@ -1062,7 +1087,7 @@ See `treesit-language-at-point-function'."
   ;; provides outline ellipsis
   (outline-minor-mode t)
 
-  ;; TODO
+  ;; ;; TODO
   ;; (typst-ts-els-include-dynamically nil nil)
   
   (treesit-major-mode-setup))

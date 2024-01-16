@@ -1,2 +1,6 @@
 *.elc
 indentation-test.typ
+
+# Added by cargo
+
+/target
