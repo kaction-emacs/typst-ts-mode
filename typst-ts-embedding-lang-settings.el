@@ -66,7 +66,7 @@ languages in settings."
       bibtex ("bib" "bibtex" )
       build ("build" )
       c ("c" "h" )
-      c++ ("cpp" "cc" "cp" "cxx" "c++" "c" "h" "hh" "hpp" "hxx" "h++" "inl" "ipp" )
+      c-sharp ("cs" "csx" "c#" )
       cabal ("cabal" )
       camlp4 ("camlp4" )
       clojure ("clj" "cljc" "cljs" "edn" "clojure" )
@@ -77,10 +77,10 @@ languages in settings."
       commands-builtin-shell-bash ("commands-builtin-shell-bash" )
       commit_editmsg ("commit_editmsg" "merge_msg" "tag_editmsg" )
       commonlisp ("clisp" )
+      cpp ("cpp" "cc" "cp" "cxx" "c++" "c" "h" "hh" "hpp" "hxx" "h++" "inl" "ipp" )
       cpuinfo ("cpuinfo" )
       crontab ("tab" "crontab" "cron.d" )
       crystal ("cr" "crystal" )
-      csharp ("cs" "csx" "c#" )
       css ("css" "css.erb" "css.liquid" )
       csv ("csv" "tsv" )
       d ("d" "di" )
@@ -221,7 +221,9 @@ languages in settings."
       yaml ("yaml" "yml" "sublime-syntax" )
       yasm ("yasm" "nasm" "asm" "inc" "mac" )
       yaws ("yaws" )
-      zig ("zig" )))
+      zig ("zig" )
+
+      ))
   "Tree sitter language -> Raw block tags map.")
 
 (defvar typst-ts-els-tag-lang-map
@@ -248,21 +250,21 @@ languages in settings."
       "ebuild" bash "eclass" bash "bat" bat
       "cmd" bat "bib" bibtex "bibtex" bibtex
       "build" build "c" c "h" c
-      "cpp" c++ "cc" c++ "cp" c++
-      "cxx" c++ "c++" c++ "c" c++
-      "h" c++ "hh" c++ "hpp" c++
-      "hxx" c++ "h++" c++ "inl" c++
-      "ipp" c++ "cabal" cabal "camlp4" camlp4
-      "clj" clojure "cljc" clojure "cljs" clojure
-      "edn" clojure "clojure" clojure "cmakelists.txt" cmake
-      "cmake" cmake "cmakecache.txt" cmakecache "cmakecache" cmakecache
-      "cmakecommands" cmakecommands "coffee" coffeescript "cakefile" coffeescript
-      "coffee.erb" coffeescript "cson" coffeescript "coffeescript" coffeescript
-      "commands-builtin-shell-bash" commands-builtin-shell-bash "commit_editmsg" commit_editmsg "merge_msg" commit_editmsg
-      "tag_editmsg" commit_editmsg "clisp" commonlisp "cpuinfo" cpuinfo
+      "cs" c-sharp "csx" c-sharp "c#" c-sharp
+      "cabal" cabal "camlp4" camlp4 "clj" clojure
+      "cljc" clojure "cljs" clojure "edn" clojure
+      "clojure" clojure "cmakelists.txt" cmake "cmake" cmake
+      "cmakecache.txt" cmakecache "cmakecache" cmakecache "cmakecommands" cmakecommands
+      "coffee" coffeescript "cakefile" coffeescript "coffee.erb" coffeescript
+      "cson" coffeescript "coffeescript" coffeescript "commands-builtin-shell-bash" commands-builtin-shell-bash
+      "commit_editmsg" commit_editmsg "merge_msg" commit_editmsg "tag_editmsg" commit_editmsg
+      "clisp" commonlisp "cpp" cpp "cc" cpp
+      "cp" cpp "cxx" cpp "c++" cpp
+      "c" cpp "h" cpp "hh" cpp
+      "hpp" cpp "hxx" cpp "h++" cpp
+      "inl" cpp "ipp" cpp "cpuinfo" cpuinfo
       "tab" crontab "crontab" crontab "cron.d" crontab
-      "cr" crystal "crystal" crystal "cs" csharp
-      "csx" csharp "c#" csharp "css" css
+      "cr" crystal "crystal" crystal "css" css
       "css.erb" css "css.liquid" css "csv" csv
       "tsv" csv "d" d "di" d
       "dart" dart "diff" diff "patch" diff
@@ -457,25 +459,25 @@ languages in settings."
           :font-lock (c-ts-mode--font-lock-settings 'c)
           :indentation (c-ts-mode--get-indent-style 'c)
           :ts-feature-list c-ts-mode--feature-list))
-    (csharp . (:feature
-               csharp-mode
-               :font-lock csharp-ts-mode--font-lock-settings
-               :indentation csharp-ts-mode--indent-rules
-               :ts-feature-list
-               '(( comment definition)
-                 ( keyword string type directives)
-                 ( constant escape-sequence expression literal property)
-                 ( function bracket delimiter error))))
+    (c-sharp . (:feature
+                csharp-mode
+                :font-lock csharp-ts-mode--font-lock-settings
+                :indentation csharp-ts-mode--indent-rules
+                :ts-feature-list
+                '(( comment definition)
+                  ( keyword string type directives)
+                  ( constant escape-sequence expression literal property)
+                  ( function bracket delimiter error))))
     (clojure . (:feature
                 cmake-ts-mode
                 :font-lock cmake-ts-mode--font-lock-settings
                 :indentation cmake-ts-mode--indent-rules
+                :ts-feature-list
                 '((comment)
                   (keyword string)
                   (builtin constant escape-sequence function number variable)
                   (bracket error misc-punctuation))))
-    ;; TODO local grammar name is cpp
-    (c++ . (:feature
+    (cpp . (:feature
             c-ts-mode
             :font-lock (c-ts-mode--font-lock-settings 'cpp)
             :indentation (c-ts-mode--get-indent-style 'cpp)
@@ -488,6 +490,82 @@ languages in settings."
             '((selector comment query keyword)
               (property constant string)
               (error variable function operator bracket))))
+    (dockerfile . (:feature
+                   dockerfile-ts-mode
+                   :font-lock dockerfile-ts-mode--font-lock-settings
+                   :indentation dockerfile-ts-mode--indent-rules
+                   :ts-feature-list
+                   '((comment)
+                     (keyword string)
+                     (image-spec number)
+                     (bracket delimiter error operator))))
+    (elixir . (:feature
+               elixir-ts-mode
+               :font-lock elixir-ts--font-lock-settings
+               :indentation elixir-ts--indent-rules
+               :ts-feature-list
+               '(( elixir-comment elixir-doc elixir-function-name)
+                 ( elixir-string elixir-keyword elixir-data-type)
+                 ( elixir-sigil elixir-variable elixir-builtin
+                   elixir-string-escape)
+                 ( elixir-function-call elixir-operator elixir-number ))))
+    (go . (:feature
+           go-ts-mode
+           :font-lock go-ts-mode--font-lock-settings
+           :indentation go-ts-mode--indent-rules
+           :ts-feature-list
+           '(( comment definition)
+             ( keyword string type)
+             ( constant escape-sequence label number)
+             ( bracket delimiter error function operator property variable))))
+    (gomod . (:feature
+              go-ts-mode
+              :font-lock go-mod-ts-mode--font-lock-settings
+              :indentation go-mod-ts-mode--indent-rules
+              :ts-feature-list
+              '((comment)
+                (keyword)
+                (number)
+                (bracket error operator))))
+    (heex . (:feature
+             heex-ts-mode
+             :font-lock heex-ts--font-lock-settings
+             :indentation heex-ts--indent-rules
+             :ts-feature-list
+             '(( heex-comment heex-keyword heex-doctype )
+               ( heex-component heex-tag heex-attribute heex-string )
+               () ())))
+    (html . (:feature
+             html-ts-mode
+             :font-lock html-ts-mode--font-lock-settings
+             :indentation html-ts-mode--indent-rules
+             :ts-feature-list
+             '((comment keyword definition)
+               (property string)
+               () ())))
+    (java . (:feature
+             java-ts-mode
+             :font-lock java-ts-mode--font-lock-settings
+             :indentation java-ts-mode--indent-rules
+             :ts-feature-list java-ts-mode--feature-list))
+    (javascript . (:feature
+                   js
+                   :font-lock js--treesit-font-lock-settings
+                   :indentation js--treesit-indent-rules
+                   :ts-feature-list
+                   '(( comment definition)
+                     ( keyword string)
+                     ( assignment constant escape-sequence jsx number
+                       pattern string-interpolation)
+                     ( bracket delimiter function operator property))))
+    (json . (:feature
+             json-ts-mode
+             :font-lock json-ts-mode--font-lock-settings
+             :indentation json-ts--indent-rules
+             :ts-feature-list
+             '((comment constant number pair string)
+               (escape-sequence)
+               (bracket delimiter error))))
     (python . (:feature
                python
                :font-lock python--treesit-settings
@@ -514,6 +592,8 @@ languages in settings."
 ;; from vimscript-ts-mode (https://github.com/nverno/vimscript-ts-mode)
 (defun typst-ts-els--merge-features (a b)
   "Merge `treesit-font-lock-feature-list's A with B."
+  (when (not (and a b))
+    (error "One of the treesit font lock feature list is nil when merge!"))
   (cl-loop for x in a
            for y in b
            collect (seq-uniq (append x y))))
@@ -683,10 +763,19 @@ Use this function as one notifier of `treesit-parser-notifiers'."
 
 (defun typst-ts-embedding-lang-settings-test ()
   "Test typst-ts-embedding-lang-settings."
+  (setq-local treesit-font-lock-feature-list
+              '((comment common)
+                (markup-basic code-basic math-basic)
+                (markup-standard code-standard math-standard)
+                (markup-extended code-extended math-extended)))
   (dolist (setting-entry typst-ts-embedding-lang-settings)
-    (message "Testing %s ..." (car setting-entry))
-    (typst-ts-els-merge-settings (cdr setting-entry)))
-  (message "No problem found!"))
+    (let ((language (car setting-entry))
+          (config (cdr setting-entry)))
+      (message "Testing %s ..."  language)
+      (unless (treesit-ready-p language t)
+        (message "!!! Doesn't have %s dynamic library file." language))
+      (typst-ts-els-merge-settings config)))
+  (message "No setting problem found!"))
 
 
 (provide 'typst-ts-embedding-lang-settings)

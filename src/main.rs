@@ -159,6 +159,10 @@ fn get_tag_remap() -> HashMap<String, String> {
 }
 
 fn get_identifier_remap() -> HashMap<String, String> {
-    let map = &[("sh", "bash"), ("cs", "csharp")];
+    let map = &[
+        ("sh", "bash"),
+        ("cs", "c-sharp"),
+        ("c++", "cpp")
+    ];
     slice_to_hashmap(map)
 }
