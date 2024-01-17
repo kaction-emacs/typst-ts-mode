@@ -1023,8 +1023,11 @@ See `treesit-language-at-point-function'."
              for config = (cdr setting)
              when (treesit-ready-p lang t)
              do
-             (ignore-errors
-               (typst-ts-els-merge-settings config)
+             (unwind-protect
+                 (typst-ts-els-merge-settings config)
+               ;; some feature like cmake-ts-mode will create a parser when
+               ;; the feature is required, so we need to clean thease parsers
+               (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
                (add-to-list 'typst-ts-els--include-languages lang))))
 
   (unless (treesit-ready-p 'typst)
@@ -1087,8 +1090,6 @@ See `treesit-language-at-point-function'."
   ;; Although without enabling `outline-minor-mode' also works, enabling it
   ;; provides outline ellipsis
   (outline-minor-mode t)
-
-
   
   (treesit-major-mode-setup))
 

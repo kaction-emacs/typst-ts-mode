@@ -37,9 +37,10 @@ error occurs."
   :type 'boolean
   :group 'typst-ts)
 
-(defcustom typst-ts-highlight-raw-block-langs-not-in-settings nil
+(defcustom typst-ts-highlight-raw-block-langs-not-in-predefined-settings t
   "Whether to highlight raw block of language that is not in settings.
-The cost for setting up these languages is usually higher than those
+i.e. not in `typst-ts-embedding-lang-settings'.
+The cost for setting up other languages is usually higher than those
 languages in settings."
   :type 'boolean
   :group 'typst-ts)
@@ -468,15 +469,15 @@ languages in settings."
                   ( keyword string type directives)
                   ( constant escape-sequence expression literal property)
                   ( function bracket delimiter error))))
-    (clojure . (:feature
-                cmake-ts-mode
-                :font-lock cmake-ts-mode--font-lock-settings
-                :indentation cmake-ts-mode--indent-rules
-                :ts-feature-list
-                '((comment)
-                  (keyword string)
-                  (builtin constant escape-sequence function number variable)
-                  (bracket error misc-punctuation))))
+    (cmake . (:feature
+              cmake-ts-mode
+              :font-lock cmake-ts-mode--font-lock-settings
+              :indentation cmake-ts-mode--indent-rules
+              :ts-feature-list
+              '((comment)
+                (keyword string)
+                (builtin constant escape-sequence function number variable)
+                (bracket error misc-punctuation))))
     (cpp . (:feature
             c-ts-mode
             :font-lock (c-ts-mode--font-lock-settings 'cpp)
@@ -574,6 +575,16 @@ languages in settings."
                '((comment number string definition)
                  (keyword builtin type constant variable)
                  (escape-sequence function property))))
+    (lua . (:feature
+            lua-ts-mode
+            :font-lock lua-ts--font-lock-settings
+            :indentation lua-ts--simple-indent-rules
+            :ts-feature-list
+            '((comment definition)
+              (keyword string)
+              (assignment builtin constant number)
+              (bracket delimiter escape function
+                       operator property punctuation variable))))
     (python . (:feature
                python
                :font-lock python--treesit-settings
@@ -584,6 +595,18 @@ languages in settings."
                  ( assignment builtin constant decorator
                    escape-sequence number string-interpolation )
                  ( bracket delimiter function operator variable property ))))
+    (ruby . (:feature
+             ruby-ts-mode
+             :font-lock (ruby-ts--font-lock-settings 'ruby)
+             :indentation (ruby-ts--indent-rules)
+             :ts-feature-list
+             '(( comment method-definition parameter-definition)
+               ( keyword regexp string type)
+               ( builtin-variable builtin-constant builtin-function
+                 delimiter escape-sequence
+                 constant global instance
+                 interpolation literal symbol assignment)
+               ( bracket error function operator punctuation))))
     (rust . (:feature
              rust-ts-mode
              :font-lock rust-ts-mode--font-lock-settings
@@ -593,18 +616,61 @@ languages in settings."
                ( keyword string)
                ( assignment attribute builtin constant escape-sequence
                  number type)
-               ( bracket delimiter error function operator property variable)))))
+               ( bracket delimiter error function operator property variable))))
+    (toml . (:feature
+             toml-ts-mode
+             :font-lock toml-ts-mode--font-lock-settings
+             :indentation toml-ts-mode--indent-rules
+             :ts-feature-list
+             '((comment)
+               (constant number pair string)
+               (escape-sequence)
+               (delimiter error))))
+    (tsx . (:feature
+            typescript-ts-mode
+            :font-lock (typescript-ts-mode--font-lock-settings 'tsx)
+            :indentation (typescript-ts-mode--indent-rules 'tsx)
+            :ts-feature-list
+            '((comment declaration)
+              (keyword string escape-sequence)
+              (constant expression identifier jsx number pattern property)
+              (function bracket delimiter))))
+    (typescript . (:feature
+                   typescript-ts-mode
+                   :font-lock (typescript-ts-mode--font-lock-settings 'typescript)
+                   :indentation (typescript-ts-mode--indent-rules 'typescript)
+                   :ts-feature-list
+                   '((comment declaration)
+                     (keyword string escape-sequence)
+                     (constant expression identifier number pattern property)
+                     (operator function bracket delimiter))))
+    (yaml . (:feature
+             yaml-ts-mode
+             :font-lock yaml-ts-mode--font-lock-settings
+             :indentation nil
+             :ts-feature-list
+             '((comment)
+               (string type)
+               (constant escape-sequence number property)
+               (bracket delimiter error misc-punctuation))))
+    (mermaid . (:feature
+                mermaid-ts-mode
+                :font-lock mermaid-ts--treesit-font-lock-rules
+                :indentation mermaid-ts--indent-rules
+                :ts-feature-list
+                '((comments)
+                  (constants keywords text links)
+                  (nodes)))))
   "Settings for raw block languages.")
 
 
-;; from vimscript-ts-mode (https://github.com/nverno/vimscript-ts-mode)
 (defun typst-ts-els--merge-features (a b)
   "Merge `treesit-font-lock-feature-list's A with B."
   (when (not (and a b))
     (error "One of the treesit font lock feature list is nil when merge!"))
-  (cl-loop for x in a
-           for y in b
-           collect (seq-uniq (append x y))))
+  (cl-loop for i to 3  ; [0, 3]
+           collect
+           (seq-uniq (append (nth i a) (nth i b)))))
 
 ;; hugely insprired by vimscript-ts-mode (https://github.com/nverno/vimscript-ts-mode)
 (defun typst-ts-els-merge-settings (settings)
@@ -728,41 +794,46 @@ Use this function as one notifier of `treesit-parser-notifiers'."
                   ;; note: the `treesit-range-settings' for languages in
                   ;; predefined settings are already settled at mode start
                   (typst-ts-els-merge-lang-settings lang)
+                  ;; some feature like cmake-ts-mode will create a parser when
+                  ;; the feature is required, so we need to clean thease parsers
+                  (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
                   (message "Load %s language settings from configuration." lang))
               (error
                ;; if language not in setting or encounter error during loading,
                ;; then try your luck to load it
-               (condition-case err
-                   (progn
-                     ;; add range rules
-                     (typst-ts-els--add-treesit-range-rules lang)
-                     ;; delete top level parsers, so range rules works (i.e. local parsers)
-                     ;; so that highlighting will not exceed the desired range
-                     (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
+               (when typst-ts-highlight-raw-block-langs-not-in-predefined-settings
+                 (condition-case err
+                     (progn
+                       ;; add range rules
+                       (typst-ts-els--add-treesit-range-rules lang)
+                       ;; delete top level parsers, so range rules works (i.e. local parsers)
+                       ;; so that highlighting will not exceed the desired range
+                       (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
 
-                     ;; find and merge settings
-                     (setq lang-ts-mode
-                           (intern (concat (symbol-name lang) "-ts-mode")))
-                     (setq settings
-                           (typst-ts-els--try-get-ts-settings lang-ts-mode))
+                       ;; find and merge settings
+                       (setq lang-ts-mode
+                             (intern (concat (symbol-name lang) "-ts-mode")))
+                       (setq settings
+                             (typst-ts-els--try-get-ts-settings lang-ts-mode))
 
-                     (setq treesit-font-lock-settings
-                           (append treesit-font-lock-settings
-                                   (plist-get settings :treesit-font-lock-settings)))
+                       (setq treesit-font-lock-settings
+                             (append treesit-font-lock-settings
+                                     (plist-get settings :treesit-font-lock-settings)))
 
-                     (setq treesit-simple-indent-rules
-                           (append treesit-simple-indent-rules
-                                   (plist-get settings :treesit-simple-indent-rules)))
+                       (setq treesit-simple-indent-rules
+                             (append treesit-simple-indent-rules
+                                     (plist-get settings :treesit-simple-indent-rules)))
 
-                     (setq treesit-font-lock-feature-list
-                           (typst-ts-els--merge-features
-                            treesit-font-lock-feature-list
-                            (plist-get settings :treesit-font-lock-feature-list)))
-                     (message "Luckily merged %s language settings." lang))
-                 (error
-                  (message "Loading %s language settings without luck: \n%s"
-                           lang
-                           (error-message-string err))))))
+                       (setq treesit-font-lock-feature-list
+                             (typst-ts-els--merge-features
+                              treesit-font-lock-feature-list
+                              (plist-get settings :treesit-font-lock-feature-list)))
+                       (message "Luckily merged %s language settings." lang))
+                   (error
+                    (message "Loading %s language settings without luck: \n%s"
+                             lang
+                             (error-message-string err)))))
+               ))
           ;; whatever, we won't load that language again
           (add-to-list 'typst-ts-els--include-languages lang))
         ))))
@@ -831,12 +902,12 @@ LANG and NEWLANG: either a symbol or string."
 
 (defun typst-ts-embedding-lang-settings-test ()
   "Test typst-ts-embedding-lang-settings."
-  (let ((treesit-font-lock-feature-list
-         '((comment common)
-           (markup-basic code-basic math-basic)
-           (markup-standard code-standard math-standard)
-           (markup-extended code-extended math-extended)))
-        missing-dylibs err-msgs)
+  (setq-local treesit-font-lock-feature-list
+              '((comment common)
+                (markup-basic code-basic math-basic)
+                (markup-standard code-standard math-standard)
+                (markup-extended code-extended math-extended)))
+  (let (missing-dylibs err-msgs)
     (dolist (setting-entry typst-ts-embedding-lang-settings)
       (let ((language (car setting-entry))
             (config (cdr setting-entry)))
@@ -848,7 +919,7 @@ LANG and NEWLANG: either a symbol or string."
           (error
            (setq err-msgs (list (error-message-string err)))))))
     (message "---------  Missing Tree Sitter Dynamic libraries -------------")
-    (message " (This also could be an error of settings entry key name) ")
+    (message " (This also could be an error of entry key name in settings) ")
     (message "%s" (string-join missing-dylibs " "))
     (message "---------  Error Messages ------------------------------------")
     (message "%s" (string-join err-msgs "\n"))))
