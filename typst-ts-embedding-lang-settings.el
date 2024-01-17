@@ -566,6 +566,14 @@ languages in settings."
              '((comment constant number pair string)
                (escape-sequence)
                (bracket delimiter error))))
+    (kotlin . (:feature
+               kotlin-ts-mode
+               :font-lock kotlin-ts-mode--treesit-settings
+               :indentation kotlin-ts-mode--treesit-indent-rules
+               :ts-feature-list
+               '((comment number string definition)
+                 (keyword builtin type constant variable)
+                 (escape-sequence function property))))
     (python . (:feature
                python
                :font-lock python--treesit-settings
@@ -759,24 +767,91 @@ Use this function as one notifier of `treesit-parser-notifiers'."
           (add-to-list 'typst-ts-els--include-languages lang))
         ))))
 
+;;; Utilities functions for changing language tag relationship (change two maps
+;;; synchronizely) =============================================================
+
+;;;###autoload
+(defun typst-ts-els--add-lang-tags-relationship (lang tags)
+  "Add or modify language tags relationship.
+This function will make changes to `typst-ts-els-lang-tags-map' and
+`typst-ts-els-tag-lang-map'.
+LANG: either a symbol or string.
+TAGS: either a string or a list of strings."
+  (let ((lang (if (symbolp lang)
+                  lang
+                (if (stringp lang)
+                    (intern lang)
+                  (error "LANG should be either symbol or string"))))
+        (tags (if (stringp tags)
+                  (list tags)
+                (if (and (listp tags)
+                         (stringp (nth 0 tags)))
+                    tags
+                  (error "Tags should be either a string or a list of strings"))))
+        (original-tags (gethash lang typst-ts-els-lang-tags-map))
+        temp-lang)
+    (dolist (tag tags)
+      (setq temp-lang (gethash tag typst-ts-els-tag-lang-map))
+      (when (and temp-lang (not (eq temp-lang lang)))
+        (puthash temp-lang
+                 (remove tag (gethash temp-lang typst-ts-els-lang-tags-map))
+                 typst-ts-els-lang-tags-map))
+      
+      (puthash tag lang typst-ts-els-tag-lang-map))
+    (puthash lang (seq-uniq (append tags original-tags)) typst-ts-els-lang-tags-map)))
+
+;;;###autoload
+(defun typst-ts-els--lang-name-remap (lang newlang)
+  "Remap language name to a new language name.
+This function will remap lang to newlang for `typst-ts-els-lang-tags-map' and
+`typst-ts-els-tag-lang-map'.
+LANG and NEWLANG: either a symbol or string."
+  (let ((lang (if (symbolp lang)
+                  lang
+                (if (stringp lang)
+                    (intern lang)
+                  (error "LANG should be either symbol or string"))))
+        (newlang (if (symbolp newlang)
+                     newlang
+                   (if (stringp newlang)
+                       (intern newlang)
+                     (error "NEWLANG should be either symbol or string"))))
+        lang-tags newlang-tags)
+    (unless (eq lang newlang)
+      (setq lang-tags (gethash lang typst-ts-els-lang-tags-map))
+      (setq newlang-tags (gethash newlang typst-ts-els-lang-tags-map))
+      
+      (dolist (tag lang-tags)
+        (puthash tag newlang typst-ts-els-tag-lang-map))
+      
+      (puthash newlang (append newlang-tags lang-tags) typst-ts-els-lang-tags-map)
+      (remhash lang typst-ts-els-lang-tags-map))))
+
 ;;; Test Utilities =============================================================
 
 (defun typst-ts-embedding-lang-settings-test ()
   "Test typst-ts-embedding-lang-settings."
-  (setq-local treesit-font-lock-feature-list
-              '((comment common)
-                (markup-basic code-basic math-basic)
-                (markup-standard code-standard math-standard)
-                (markup-extended code-extended math-extended)))
-  (dolist (setting-entry typst-ts-embedding-lang-settings)
-    (let ((language (car setting-entry))
-          (config (cdr setting-entry)))
-      (message "Testing %s ..."  language)
-      (unless (treesit-ready-p language t)
-        (message "!!! Doesn't have %s dynamic library file." language))
-      (typst-ts-els-merge-settings config)))
-  (message "No setting problem found!"))
-
+  (let ((treesit-font-lock-feature-list
+         '((comment common)
+           (markup-basic code-basic math-basic)
+           (markup-standard code-standard math-standard)
+           (markup-extended code-extended math-extended)))
+        missing-dylibs err-msgs)
+    (dolist (setting-entry typst-ts-embedding-lang-settings)
+      (let ((language (car setting-entry))
+            (config (cdr setting-entry)))
+        (message "Testing %s ..."  language)
+        (unless (treesit-ready-p language t)
+          (setq missing-dylibs (list (symbol-name language))))
+        (condition-case err
+            (typst-ts-els-merge-settings config)
+          (error
+           (setq err-msgs (list (error-message-string err)))))))
+    (message "---------  Missing Tree Sitter Dynamic libraries -------------")
+    (message " (This also could be an error of settings entry key name) ")
+    (message "%s" (string-join missing-dylibs " "))
+    (message "---------  Error Messages ------------------------------------")
+    (message "%s" (string-join err-msgs "\n"))))
 
 (provide 'typst-ts-embedding-lang-settings)
 

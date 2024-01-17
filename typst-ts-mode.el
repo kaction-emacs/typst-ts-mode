@@ -1002,7 +1002,11 @@ See `treesit-language-at-point-function'."
   (cl-loop for lang in langs
            when (treesit-ready-p lang)
            nconc
-           (typst-ts-els--treesit-range-rules lang)))
+           (condition-case err
+               (typst-ts-els--treesit-range-rules lang)
+             (error
+              (message "%s" (error-message-string err))
+              nil))))
 
 ;;;###autoload
 (define-derived-mode typst-ts-mode text-mode "Typst"
@@ -1012,6 +1016,8 @@ See `treesit-language-at-point-function'."
   :after-hook
   ;; it seems like the following code only works in this place (after-hook)
   (when typst-ts-mode-highlight-raw-blocks-at-startup
+    ;; since currently local parsers haven't created, we cannot only load
+    ;; those necessary parsers 
     (cl-loop for setting in typst-ts-embedding-lang-settings
              for lang = (car setting)
              for config = (cdr setting)
