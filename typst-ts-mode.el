@@ -33,6 +33,8 @@
 ;; 3. rememeber git commit --amend instead directly
 ;; 4. add more predefined configurations
 
+;; add documentations
+
 ;; BUGS find:
 ;; 
 ;; 1. update raw block language will not delete the old local parser
@@ -62,6 +64,11 @@
 (defcustom typst-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `typst-ts-mode'."
   :type 'integer
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-enable-raw-blocks-highlight t
+  "Whether to enable raw block highlighting."
+  :type 'boolean
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-highlight-raw-blocks-at-startup t
@@ -802,9 +809,9 @@ PROC: process; OUTPUT: new output from PROC."
       (erase-buffer)
       (let ((window (get-buffer-window))
             (re (rx bol "error:" (+ not-newline) "\n" (+ blank) "┌─ "
-                    (+ not-newline) ":" ;; file
-                    (+ num) ":"         ;; start-line
-                    (+ num) "\n"
+                    (+ not-newline) ":"  ; file
+                    (+ num) ":"  ; start-line
+                    (+ num) "\n"  ; start-col
                     (+ (+ (or blank num)) "│" (* not-newline) "\n")))
             (next-match-start-pos 0)
             res-output)
@@ -1015,7 +1022,8 @@ See `treesit-language-at-point-function'."
   :syntax-table typst-ts-mode-syntax-table
   :after-hook
   ;; it seems like the following code only works in this place (after-hook)
-  (when typst-ts-mode-highlight-raw-blocks-at-startup
+  (when (and typst-ts-mode-enable-raw-blocks-highlight
+             typst-ts-mode-highlight-raw-blocks-at-startup)
     ;; since currently local parsers haven't created, we cannot only load
     ;; those necessary parsers 
     (cl-loop for setting in typst-ts-embedding-lang-settings
@@ -1033,11 +1041,13 @@ See `treesit-language-at-point-function'."
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
 
-  (let ((parser (treesit-parser-create 'typst)))
-    (when typst-ts-mode-highlight-raw-block
-      (treesit-parser-add-notifier
-       parser
-       'typst-ts-els-include-dynamically)))
+  (if typst-ts-mode-enable-raw-blocks-highlight
+      (let ((parser (treesit-parser-create 'typst)))
+        (when typst-ts-mode-highlight-raw-block
+          (treesit-parser-add-notifier
+           parser
+           'typst-ts-els-include-dynamically)))
+    (treesit-parser-create 'typst))
 
   ;; Comments.
   (typst-ts-mode-comment-setup)
@@ -1073,15 +1083,16 @@ See `treesit-language-at-point-function'."
                       (file-name-nondirectory buffer-file-name)
                       typst-ts-mode-compile-options))
 
-  (setq-local treesit-language-at-point-function
-              'typst-ts-mode--language-at-point)
-  (setq-local treesit-range-settings
-              (typst-ts-mode--treesit-range-rules
-               (append
-                (cl-loop for setting in typst-ts-embedding-lang-settings
-                         when (treesit-ready-p (car setting) t)
-                         collect (car setting))
-                '(typst))))
+  (when typst-ts-mode-enable-raw-blocks-highlight
+    (setq-local treesit-language-at-point-function
+                'typst-ts-mode--language-at-point)
+    (setq-local treesit-range-settings
+                (typst-ts-mode--treesit-range-rules
+                 (append
+                  (cl-loop for setting in typst-ts-embedding-lang-settings
+                           when (treesit-ready-p (car setting) t)
+                           collect (car setting))
+                  '(typst)))))
 
   ;; Outline
   (setq-local outline-regexp typst-ts-mode-outline-regexp)
