@@ -64,14 +64,10 @@
   :type 'integer
   :group 'typst-ts)
 
-;;; TODO
-(defcustom typst-ts-mode-highlight-raw-blocks-at-startup nil
+(defcustom typst-ts-mode-highlight-raw-blocks-at-startup t
   "Whether to highlight raw blocks at *mode startup*.
 Note: this may take some time for documents with lot of raw blocks."
-  :type '(choice (const :tag "don't highlight at all." nil)
-                 (const :tag "highlight all." t)
-                 (const :tag "only highlight pre-configured languages.
-you need `typst-ts-enable-predefined-settings' to be `t' too." defined))
+  :type 'boolean
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-executable-location "typst"
@@ -1013,6 +1009,17 @@ See `treesit-language-at-point-function'."
   "Major mode for editing Typst, powered by tree-sitter."
   :group 'typst
   :syntax-table typst-ts-mode-syntax-table
+  :after-hook
+  ;; it seems like the following code only works in this place (after-hook)
+  (when typst-ts-mode-highlight-raw-blocks-at-startup
+    (cl-loop for setting in typst-ts-embedding-lang-settings
+             for lang = (car setting)
+             for config = (cdr setting)
+             when (treesit-ready-p lang t)
+             do
+             (ignore-errors
+               (typst-ts-els-merge-settings config)
+               (add-to-list 'typst-ts-els--include-languages lang))))
 
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
@@ -1057,18 +1064,6 @@ See `treesit-language-at-point-function'."
                       (file-name-nondirectory buffer-file-name)
                       typst-ts-mode-compile-options))
 
-  ;; TODO Load settings before range settings
-  ;; (cl-loop for setting in typst-ts-embedding-lang-settings
-  ;;          for lang = (car setting)
-  ;;          for config = (cdr setting)
-  ;;          when (treesit-ready-p lang)
-  ;;          do
-  ;;          (message "%s %s" lang config)
-  ;;          (ignore-errors
-  ;;            (typst-ts-els-merge-settings config)))
-
-  ;; note we should also add these languages to `typst-ts-els--include-languages'
-  
   (setq-local treesit-language-at-point-function
               'typst-ts-mode--language-at-point)
   (setq-local treesit-range-settings
@@ -1087,8 +1082,7 @@ See `treesit-language-at-point-function'."
   ;; provides outline ellipsis
   (outline-minor-mode t)
 
-  ;; ;; TODO
-  ;; (typst-ts-els-include-dynamically nil nil)
+
   
   (treesit-major-mode-setup))
 
