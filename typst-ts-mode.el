@@ -34,6 +34,7 @@
 ;; 4. add more predefined configurations
 
 ;; add documentations
+;; add more treesit settings at startup like `treesit-thing-settings'
 
 ;; BUGS find:
 ;; 
@@ -296,7 +297,7 @@ is eliminated."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-raw-blob-face
-  '((t :inherit variable-pitch))
+  '((t :inherit fixed-pitch))
   "Face for rawblock and rawspan blob."
   :group 'typst-ts-faces)
 
@@ -308,6 +309,11 @@ is eliminated."
 (defface typst-ts-markup-rawblock-indicator-face
   '((t :inherit typst-ts-markup-raw-indicator-face))
   "Face for rawblock indicator."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-rawblock-lang-face
+  '((t :inherit font-lock-type-face))
+  "Face for rawspan ident."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawblock-blob-face
@@ -323,11 +329,6 @@ is eliminated."
 (defface typst-ts-markup-rawspan-indicator-face
   '((t :inherit typst-ts-markup-raw-indicator-face))
   "Face for rawspan indicator."
-  :group 'typst-ts-faces)
-
-(defface typst-ts-markup-rawspan-lang-face
-  '((t :inherit variable-pitch))
-  "Face for rawspan ident."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-blob-face
@@ -373,6 +374,22 @@ is eliminated."
     st))
 
 (defvar typst-ts-mode-font-lock-rules
+  nil
+  "You can customize this variable to override the default font lock rules.
+Like this:
+
+(setq typst-ts-mode-font-lock-rules
+        (append
+         (typst-ts-mode-font-lock-rules)
+         \='(
+           :language typst
+           :type custom
+           ((el-psy-kongaroo) @el-psy-kongaroo))))")
+
+(defun typst-ts-mode-font-lock-rules ()
+  "Generate font lock rules for `treesit-font-lock-rules'.
+If you want to customize the rules, please customize the same name variable
+`typst-ts-mode-font-lock-rules'."
   `(;; Typst font locking
     :language typst
     :feature comment
@@ -407,9 +424,11 @@ is eliminated."
       "`" @typst-ts-markup-rawspan-indicator-face)
      (raw_blck
       "```" @typst-ts-markup-rawblock-indicator-face
-      (ident) :? @typst-ts-markup-rawspan-lang-face
+      (ident) :? @typst-ts-markup-rawblock-lang-face
       ;; NOTE let embedded language fontify blob
-      ;; (blob) @typst-ts-markup-rawblock-blob-face 
+      ,@(if typst-ts-mode-enable-raw-blocks-highlight
+            '((blob))
+          '((blob) @typst-ts-markup-rawblock-blob-face))
       "```" @typst-ts-markup-rawblock-indicator-face)
      (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
      (ref) @typst-ts-markup-reference-face)
@@ -1064,7 +1083,9 @@ See `treesit-language-at-point-function'."
   ;; Font Lock
   (setq-local treesit-font-lock-level 4)
   (setq-local treesit-font-lock-settings
-              (apply #'treesit-font-lock-rules typst-ts-mode-font-lock-rules))
+              (apply #'treesit-font-lock-rules (if typst-ts-mode-font-lock-rules
+                                                   typst-ts-mode-font-lock-rules
+                                                 (typst-ts-mode-font-lock-rules))))
   (setq-local treesit-font-lock-feature-list typst-ts-mode-font-lock-feature-list)
 
   ;; Indentation
@@ -1077,11 +1098,11 @@ See `treesit-language-at-point-function'."
                 ("Headings" "^heading$" nil typst-ts-mode--imenu-name-function)))
 
   ;; Compile Command
-  (setq-local compile-command
-              (format "%s compile %s %s"
-                      typst-ts-mode-executable-location
-                      (file-name-nondirectory buffer-file-name)
-                      typst-ts-mode-compile-options))
+  (ignore-errors
+    (format "%s compile %s %s"
+            typst-ts-mode-executable-location
+            (file-name-nondirectory buffer-file-name)
+            typst-ts-mode-compile-options))
 
   (when typst-ts-mode-enable-raw-blocks-highlight
     (setq-local treesit-language-at-point-function
