@@ -106,6 +106,14 @@ because Typst itself do this style. You may find `auto-save-visited-mode`,
 6. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale` to control header height. 
 7. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`
 
+### Raw block highlighting
+
+For more detailed documentation about raw block highlighting see 
+[this documentation](./doc/raw-block-highlighing.md)  
+1. `typst-ts-mode-enable-raw-blocks-highlight` (default `t`)  
+2. `typst-ts-mode-highlight-raw-blocks-at-startup` (default `t`)  
+3. `typst-ts-highlight-raw-block-langs-not-in-predefined-settings` (default `t`)  
+
 ### Consult Imenu Integration
 If you use `consult-iemnu`
 command [consult](https://github.com/minad/consult), you way want this setting.

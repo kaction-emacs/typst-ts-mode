@@ -1,0 +1,64 @@
+@startuml
+
+floating note
+<color:purple>purple</color>: built-in functions / variables
+<color:blue>blue</color>: typst-ts-mode functions / variable
+<color:red>red</color>: typst-ts-mode raw block configuration variables
+end note
+
+partition editing {
+  if (<color:red> typst-ts-mode-enable-raw-blocks-highlight</color>) is (t) then
+    fork
+      partition function: <color:purple>treesit-language-at-point-function</color> {
+        floating note: i.e. <color:blue>typst-ts-mode--language-at-point</color>
+        :raw block tag (**ignore case**) will be converted to tree sitter
+        language symbol via <color:blue>typst-ts-els-tag-lang-map</color>;
+        if (langauge symbol in map) is (nil) then
+          :use language symbol **typst**;
+        endif
+      }
+
+      if (language symbol **not** in <color:red>treesit-range-settings</color>
+      and dynamic library file for language is loaded) then
+        :treesit will create a toplevel parser of that language;
+        note left
+          which is what we don't want, since it will mess the foncication
+          (i.e. highlight area outside the raw block)
+          we will delete it later
+        end note
+      endif
+      
+    fork again
+      partition <color:purple>treesit-range-settings</color> {
+        :create local parsers (parse specific areas) according to
+        <color:purple>treesit-range-settings</color> (which defines queries for
+        finding area, and specifys parser language for that area);
+      }
+    end fork
+
+    partition function: <color:blue>typst-ts-els-include-dynamically</color> {
+      note
+      this function is called when buffer changes.
+      see <color:red>treesit-parser-add-notifier</color>
+      end note
+
+      :get all parsers (including toplevel, local);
+
+      while (parser in parsers)
+        if (the language of the parser haven't been marked loaded) then
+          if (try load settings via <color:blue>typst-ts-embedding-lang-settings</color>) is (not success) then
+            if (<color:red>typst-ts-highlight-raw-block-langs-not-in-predefined-settings</color>) is (t) then
+              :guess the corresponding tree sitter major mode of the language;
+              :create a temporary buffer with hooks disabled;
+              :load settings from local variables;
+            endif
+          endif
+          :mark the language as loaded;
+        endif
+      endwhile
+    }
+  endif
+}
+
+end
+@enduml

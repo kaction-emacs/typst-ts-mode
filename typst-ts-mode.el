@@ -28,20 +28,7 @@
 ;; Tree Sitter Support for Typst
 
 ;; TODO
-;; 1. search all other TODOS
-;; 2. enable highlighting raw block at startup
-;; 3. rememeber git commit --amend instead directly
-;; 4. add more predefined configurations
-
-;; add documentations
 ;; add more treesit settings at startup like `treesit-thing-settings'
-
-;; BUGS find:
-;; 
-;; 1. update raw block language will not delete the old local parser
-;;    -> you need to delete the whole raw block to remove the local parser
-;;    -> this is due to the behavior of `treesit--update-ranges-local'
-;;    -> current-haven't thought good way to handle it
 
 ;;; Code:
 
@@ -166,12 +153,6 @@ is eliminated."
            (set-default symbol (make-list (length value) 1.0))))
   :set-after '(typst-ts-markup-header-same-height)
   :group 'typst-ts-faces)
-
-(defcustom typst-ts-mode-raw-block-lang-list
-  '(python rust)  ; TODO
-  "Raw Block Lang List."
-  :type '(list symbol)
-  :group 'typst-ts)
 
 ;; Face =========================================================================
 (defface typst-ts-watch-modeline-indicator-face
@@ -1044,7 +1025,7 @@ See `treesit-language-at-point-function'."
   (when (and typst-ts-mode-enable-raw-blocks-highlight
              typst-ts-mode-highlight-raw-blocks-at-startup)
     ;; since currently local parsers haven't created, we cannot only load
-    ;; those necessary parsers 
+    ;; those necessary parsers
     (cl-loop for setting in typst-ts-embedding-lang-settings
              for lang = (car setting)
              for config = (cdr setting)

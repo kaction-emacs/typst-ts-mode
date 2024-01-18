@@ -1,0 +1,52 @@
+@startuml
+start
+floating note
+<color:purple>purple</color>: built-in functions / variables
+<color:blue>blue</color>: typst-ts-mode functions / variable
+<color:red>red</color>: typst-ts-mode raw block configuration variables
+end note
+
+partition customization {
+  :<color:blue>typst-ts-els-lang-tags-map</color>: used in <color:purple>treesit-language-at-point-function</color>
+  <color:blue>typst-ts-els-tag-lang-map</color>: used in <color:purple>treesit-range-settings</color>
+  <color:blue>typst-ts-embedding-lang-settings</color>;
+  
+  note right
+  use function <color:blue>typst-ts-els--add-lang-tags-relationship</color> and
+  function <color:blue>typst-ts-els--lang-name-remap</color> to change variables
+  <color:blue>typst-ts-els-lang-tags-map</color> and <color:blue>typst-ts-els-tag-lang-map</color>
+  ====
+  use <color:purple>shortdoc</color> to search for <color:purple>alist</color> related
+  functions to modifiy <color:blue>typst-ts-embedding-lang-settings</color>
+  end note
+}
+
+partition mode initialization {
+  :create typst tree sitter parser;
+  
+  if (<color:red> typst-ts-mode-enable-raw-blocks-highlight</color>) is (t) then
+  :add <color:blue>typst-ts-els-include-dynamically</color> function to
+  parser notification functions list;
+
+  note right
+  so <color:blue>typst-ts-els-include-dynamically</color> will receive buffer
+  change notification
+  end note
+
+  :set <color:purple>treesit-language-at-point-function</color> and <color:purple>treesit-range-settings</color>;
+  
+  note right
+  They are used to create tree sitter parsers. Moreover,
+  <color:purple>treesit-range-settings</color> defined which area these parser
+  will act on.
+  end note
+  
+  :run hooks (functions added in <color:purple>typst-ts-mode-hook</color>);
+
+  if (<color:red> typst-ts-mode-highlight-raw-blocks-at-startup) is (t) then
+  :load and merge predefined settings from variable
+  <color:blue>typst-ts-embedding-lang-settings</color>;
+  endif
+  endif
+}
+@enduml
