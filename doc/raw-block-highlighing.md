@@ -3,8 +3,9 @@
 ## Customization Option
 1. `typst-ts-mode-enable-raw-blocks-highlight`  
 2. `typst-ts-mode-highlight-raw-blocks-at-startup`  
-Due to the lazy fontification feature of `treesit`, raw blocks won't be 
-highlighted at the startup by default. Set it to `t` to enable this feature.
+If it is `nil`, then you need to manually change the buffer a bit (like insert/delete
+a character) to trigger function `typst-ts-els-include-dynamically` to merge other
+language settings, so that highlighting works.
 3. `typst-ts-highlight-raw-block-langs-not-in-predefined-settings`
 
 ## Mechanism

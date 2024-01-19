@@ -54,12 +54,13 @@
   :type 'integer
   :group 'typst-ts)
 
-(defcustom typst-ts-mode-enable-raw-blocks-highlight t
+;; TODO currently set nil as default, since it still needs refinement
+(defcustom typst-ts-mode-enable-raw-blocks-highlight nil
   "Whether to enable raw block highlighting."
   :type 'boolean
   :group 'typst-ts)
 
-(defcustom typst-ts-mode-highlight-raw-blocks-at-startup t
+(defcustom typst-ts-mode-highlight-raw-blocks-at-startup nil
   "Whether to highlight raw blocks at *mode startup*.
 Note: this may take some time for documents with lot of raw blocks."
   :type 'boolean

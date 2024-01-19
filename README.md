@@ -108,10 +108,11 @@ because Typst itself do this style. You may find `auto-save-visited-mode`,
 
 ### Raw block highlighting
 Only support tree-sitter languages.  
+This is an experimental feature, so it is disabled by default.
 For more detailed documentation about raw block highlighting see 
 [this documentation](./doc/raw-block-highlighing.md)  
-1. `typst-ts-mode-enable-raw-blocks-highlight` (default `t`)  
-2. `typst-ts-mode-highlight-raw-blocks-at-startup` (default `t`)  
+1. `typst-ts-mode-enable-raw-blocks-highlight` (default `nil`)  
+2. `typst-ts-mode-highlight-raw-blocks-at-startup` (default `nil`)  
 3. `typst-ts-highlight-raw-block-langs-not-in-predefined-settings` (default `t`)  
 
 ### Consult Imenu Integration
