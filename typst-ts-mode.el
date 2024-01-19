@@ -1085,7 +1085,9 @@ See `treesit-language-at-point-function'."
             (file-name-nondirectory buffer-file-name)
             typst-ts-mode-compile-options))
 
-  (when typst-ts-mode-enable-raw-blocks-highlight
+  (if (not typst-ts-mode-enable-raw-blocks-highlight)
+      (setq-local treesit-range-settings
+                  (typst-ts-mode--treesit-range-rules '(typst)))
     (setq-local treesit-language-at-point-function
                 'typst-ts-mode--language-at-point)
     (setq-local treesit-range-settings

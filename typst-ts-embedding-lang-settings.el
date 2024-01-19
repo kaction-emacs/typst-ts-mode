@@ -40,178 +40,178 @@ languages in settings."
      test equal
      data
      (
-      .git (".git" )
-      .mailmap (".mailmap" "mailmap" )
-      actionscript ("as" "actionscript" )
-      ada ("adb" "ads" "gpr" "ada" )
-      adoc ("adoc" "ad" "asciidoc" )
-      adp ("adp" )
+      txt ("txt" )
+      asp ("asa" "asp" )
+      actionscript ("actionscript" "as" )
       applescript ("applescript" "script editor" )
-      asp ("asa" "asp" "asp" )
-      attributes ("attributes" "gitattributes" ".gitattributes" )
-      authorized_keys ("authorized_keys" "pub" "authorized_keys2" )
-      awk ("awk" )
-      bash ("sh" "bash" "zsh" "ash" ".bash_aliases" ".bash_completions" ".bash_functions" ".bash_login" ".bash_logout" ".bash_profile" ".bash_variables" ".bashrc" ".profile" ".textmate_init" ".zlogin" ".zlogout" ".zprofile" ".zshenv" ".zshrc" "pkgbuild" "ebuild" "eclass" )
       bat ("bat" "cmd" )
-      bibtex ("bib" "bibtex" )
       build ("build" )
-      c ("c" "h" )
-      c-sharp ("cs" "csx" "c#" )
-      cabal ("cabal" )
+      c-sharp ("cs" "c#" "csx" )
+      cpp ("cc" "cp" "cxx" "c++" "hpp" "hxx" "cpp" "inl" "ipp" "h++" "hh" )
+      c ("c" )
+      css ("css.erb" "css" "css.liquid" )
+      clojure ("cljs" "edn" "clj" "cljc" "clojure" )
+      d ("di" "d" )
+      diff ("diff" "patch" )
+      erlang ("erlang" "emakefile" "escript" "erl" "hrl" )
+      yaws ("yaws" )
+      attributes ("attributes" ".gitattributes" "gitattributes" )
+      commit_editmsg ("tag_editmsg" "merge_msg" "commit_editmsg" )
+      gitconfig (".gitconfig" ".gitmodules" "gitconfig" )
+      exclude ("exclude" "gitignore" ".gitignore" )
+      .git (".git" )
+      gitlog ("gitlog" )
+      .mailmap (".mailmap" "mailmap" )
+      git-rebase-todo ("git-rebase-todo" )
+      go ("go" )
+      dot ("dot" "gv" )
+      groovy ("groovy" "gradle" "gvy" "jenkinsfile" )
+      html ("htm" "shtml" "html" "xhtml" )
+      haskell ("hs" "haskell" )
+      lhs ("lhs" )
+      json ("ipynb" "sublime-build" "sublime-theme" "sublime-keymap" "sublime-macro" "sublime-color-scheme" "sublime-completions" "sublime-project" "pipfile.lock" "sublime-settings" "json" "sublime-mousemap" "sublime-commands" "sublime-menu" )
+      jsp ("jsp" )
+      java ("java" "bsh" )
+      javadoc ("javadoc" )
+      properties ("properties" )
+      javascript ("js" "htc" "javascript" )
+      bibtex ("bib" "bibtex" )
+      latex ("ltx" "latex" )
+      tex ("cls" "sty" "tex" )
+      commonlisp ("clisp" )
+      lisp ("lsp" "lisp" "ss" "l" "fasl" "el" "mud" "cl" "scm" )
+      lua ("lua" )
+      makefile ("makefile.am" "ocamlmakefile" "make" "makefile" "mk" "gnumakefile" "mak" "makefile.in" )
+      markdown ("markdn" "markdown" "mdown" "md" )
+      multimarkdown ("multimarkdown" )
+      matlab ("matlab" )
+      ocaml ("mli" "ocaml" "ml" )
+      ocamllex ("mll" "ocamllex" )
+      ocamlyacc ("mly" "ocamlyacc" )
       camlp4 ("camlp4" )
-      clojure ("clj" "cljc" "cljs" "edn" "clojure" )
-      cmake ("cmakelists.txt" "cmake" )
+      objective-c++ ("objective-c++" "mm" )
+      objective-c ("m" "h" "objective-c" )
+      php ("phtml" "php" "php5" "php7" "phpt" "php4" "php3" "phps" )
+      pascal ("dpr" "p" "pas" "pascal" )
+      perl ("pc" "pl" "perl" "pmc" "t" "pm" "pod" )
+      python ("pxi" "bazel" "rpy" "gyp" "python" "py" "py3" "bzl" "pyw" "pxd.in" "pyx.in" "snakefile" "sconscript" "pyi" "sconstruct" "wscript" "pyx" "pxd" "pxi.in" "gypi" "cpy" "vpy" )
+      r ("r" "rprofile" )
+      rd ("rd" )
+      rails ("html.erb" "rails" "erb" "rhtml" )
+      js.erb ("js.erb" )
+      haml ("sass" "haml" )
+      rxml ("builder" "rxml" )
+      erbsql ("erbsql" "sql.erb" )
+      re ("re" )
+      restructuredtext ("restructuredtext" "rest" "rst" )
+      ruby ("brewfile" "fcgi" "jbuilder" "appfile" "rakefile" "ruby" "cheffile" "rabl" "podfile" "rbx" "config.ru" "irbrc" "cgi" "deliverfile" "guardfile" "gemfile" "appraisals" "ruby.rail" "gemspec" "vagrantfile" "berksfile" "fastfile" "prawn" "capfile" "rake" "rb" "podspec" "scanfile" "snapfile" "thor" "thorfile" "rjs" "rantfile" "simplecov" )
+      rust ("rust" "rs" )
+      sql ("ddl" "dml" "sql" )
+      scala ("scala" "sbt" "sc" )
+      bash (".bash_profile" "bash" ".zprofile" "ebuild" "sh" ".bash_functions" ".bash_aliases" "zsh" ".bash_completions" ".bash_logout" ".bash_variables" ".zshrc" "eclass" "ash" ".bash_login" ".zshenv" ".bashrc" ".textmate_init" ".zlogout" "pkgbuild" ".zlogin" ".profile" )
+      shell-unix-generic ("shell-unix-generic" )
+      commands-builtin-shell-bash ("commands-builtin-shell-bash" )
+      adp ("adp" )
+      tcl ("tcl" )
+      textile ("textile" )
+      xml ("xsd" "rng" "dtml" "xslt" "xml" "opml" "xaml" "svg" "rss" "tld" )
+      yaml ("yml" "yaml" "sublime-syntax" )
+      awk ("awk" )
+      ada ("ads" "gpr" "ada" "adb" )
+      envvars ("htaccess" ".htgroups" "htgroups" "htpasswd" ".htpasswd" "envvars" ".htaccess" )
+      adoc ("asciidoc" "adoc" "ad" )
+      yasm ("yasm" "nasm" "inc" "mac" "asm" )
+      h.in ("h.in" )
+      hh.in ("hh.in" "h++.in" "hpp.in" "hxx.in" )
+      cmake ("cmake" "cmakelists.txt" )
       cmakecache ("cmakecache.txt" "cmakecache" )
       cmakecommands ("cmakecommands" )
-      coffeescript ("coffee" "cakefile" "coffee.erb" "cson" "coffeescript" )
-      commands-builtin-shell-bash ("commands-builtin-shell-bash" )
-      commit_editmsg ("commit_editmsg" "merge_msg" "tag_editmsg" )
-      commonlisp ("clisp" )
-      cpp ("cpp" "cc" "cp" "cxx" "c++" "c" "h" "hh" "hpp" "hxx" "h++" "inl" "ipp" )
+      csv ("csv" "tsv" )
+      cabal ("cabal" )
+      coffeescript ("cakefile" "coffee.erb" "coffee" "cson" "coffeescript" )
       cpuinfo ("cpuinfo" )
       crontab ("tab" "crontab" "cron.d" )
       crystal ("cr" "crystal" )
-      css ("css" "css.erb" "css.liquid" )
-      csv ("csv" "tsv" )
-      d ("d" "di" )
       dart ("dart" )
-      diff ("diff" "patch" )
-      dockerfile ("dockerfile" "dockerfile" )
-      dot ("dot" "dot" "gv" )
-      dotenv (".env" ".env.dist" ".env.local" ".env.sample" ".env.example" ".env.template" ".env.test" ".env.test.local" ".env.testing" ".env.dev" ".env.development" ".env.development.local" ".env.prod" ".env.production" ".env.production.local" ".env.dusk.local" ".env.staging" ".env.default" ".env.defaults" ".envrc" ".flaskenv" "env" "env.example" "env.sample" "env.template" "dotenv" )
-      elixir ("ex" "exs" "elixir" )
+      dockerfile ("dockerfile" )
+      dotenv (".env.example" ".env.staging" ".env.template" ".env.production.local" "dotenv" ".env.test" ".env.dev" ".env.default" ".env.development" ".env" ".env.sample" ".env.testing" ".env.defaults" ".env.test.local" ".env.prod" ".env.production" ".env.dusk.local" ".envrc" ".flaskenv" ".env.dist" ".env.local" "env" "env.example" "env.sample" ".env.development.local" "env.template" )
+      elixir ("elixir" "exs" "ex" )
+      html.eex ("html.leex" "html.eex" )
       elm ("elm" )
-      email ("eml" "msg" "mbx" "mboxz" "email" )
-      envvars ("envvars" "htaccess" "htaccess" "htgroups" "htgroups" "htpasswd" "htpasswd" ".htaccess" ".htaccess" ".htgroups" ".htgroups" ".htpasswd" ".htpasswd" )
-      erbsql ("erbsql" "sql.erb" )
-      erlang ("erl" "hrl" "emakefile" "emakefile" "escript" "erlang" )
-      exclude ("exclude" "gitignore" ".gitignore" )
-      f ("f" "f" "f77" "f77" "for" "for" "fpp" "fpp" )
-      f90 ("f90" "f90" "f95" "f95" "f03" "f03" "f08" "f08" )
+      email ("msg" "email" "mbx" "mboxz" "eml" )
+      fs ("f#" "fsx" "fsi" )
       fish ("fish" )
-      fs ("fs" "fsi" "fsx" "f#" )
-      fstab ("fstab" "crypttab" "mtab" )
-      git-rebase-todo ("git-rebase-todo" )
-      gitconfig ("gitconfig" ".gitconfig" ".gitmodules" )
-      gitlog ("gitlog" )
-      glsl ("vs" "fs" "gs" "vsh" "fsh" "gsh" "vshader" "fshader" "gshader" "vert" "frag" "geom" "tesc" "tese" "comp" "glsl" "mesh" "task" "rgen" "rint" "rahit" "rchit" "rmiss" "rcall" )
-      gnuplot ("gp" "gpl" "gnuplot" "gnu" "plot" "plt" )
-      go ("go" )
-      graphql ("graphql" "graphqls" "gql" )
-      groff/troff ("groff" "troff" "1" "2" "3" "4" "5" "6" "7" "8" "9" "groff/troff" )
-      groovy ("groovy" "gvy" "gradle" "jenkinsfile" )
-      group ("group" )
-      h.in ("h.in" )
-      haml ("haml" "sass" )
-      haskell ("hs" "haskell" )
-      hh.in ("hh.in" "hpp.in" "hxx.in" "h++.in" )
-      hosts ("hosts" )
-      htm.j2 ("htm.j2" "html.j2" "xhtml.j2" "xml.j2" )
-      html ("html" "htm" "shtml" "xhtml" )
-      html.eex ("html.eex" "html.leex" )
-      http ("http" )
-      ini ("ini" "ini" "inf" "inf" "reg" "reg" "lng" "cfg" "cfg" "desktop" "url" "url" ".editorconfig" ".coveragerc" ".pylintrc" ".gitlint" ".hgrc" "hgrc" )
-      java ("java" "bsh" )
-      javadoc ("javadoc" )
-      javascript ("js" "htc" "javascript" )
-      jinja2 ("j2" "jinja2" "jinja" )
-      jq ("jq" )
-      js.erb ("js.erb" )
-      json ("json" "sublime-settings" "sublime-menu" "sublime-keymap" "sublime-mousemap" "sublime-theme" "sublime-build" "sublime-project" "sublime-completions" "sublime-commands" "sublime-macro" "sublime-color-scheme" "ipynb" "pipfile.lock" )
-      jsonnet ("jsonnet" "libsonnet" "libjsonnet" )
-      jsp ("jsp" )
-      julia ("jl" "julia" )
-      known_hosts ("known_hosts" "known_hosts.old" )
-      kotlin ("kt" "kts" "kotlin" )
-      latex ("tex" "ltx" "latex" )
-      lean ("lean" )
-      less ("less" "css.less" )
-      lhs ("lhs" )
-      lisp ("lisp" "cl" "l" "mud" "el" "scm" "ss" "lsp" "fasl" )
-      llvm ("ll" "llvm" )
-      log ("log" )
-      lua ("lua" )
-      makefile ("make" "gnumakefile" "makefile" "makefile" "makefile.am" "makefile.am" "makefile.in" "makefile.in" "ocamlmakefile" "mak" "mk" )
-      manpage ("man" "manpage" )
-      markdown ("md" "mdown" "markdown" "markdn" )
-      matlab ("matlab" )
-      mediawikerpanel ("mediawikerpanel" )
-      mediawiki ("mediawiki" "wikipedia" "wiki" )
-      meminfo ("meminfo" )
-      multimarkdown ("multimarkdown" )
+      f ("fpp" "f77" "f" "for" )
+      f90 ("f95" "f90" "f03" "f08" )
       namelist ("namelist" )
-      nginx ("conf.erb" "conf" "nginx.conf" "mime.types" "fastcgi_params" "scgi_params" "uwsgi_params" "nginx" )
-      nim ("nim" "nims" "nimble" )
+      fstab ("fstab" "crypttab" "mtab" )
+      glsl ("vs" "gsh" "comp" "mesh" "task" "rgen" "vshader" "glsl" "rmiss" "rahit" "fs" "rint" "vert" "vsh" "gs" "fsh" "frag" "geom" "tesc" "rchit" "rcall" "fshader" "gshader" "tese" )
+      graphql ("graphqls" "gql" "graphql" )
+      groff/troff ("groff" "8" "groff/troff" "9" "1" "5" "4" "3" "6" "7" "2" "troff" )
+      group ("group" )
+      twig ("html.twig" "twig" )
+      hosts ("hosts" )
+      ini ("lng" ".editorconfig" ".hgrc" "reg" "desktop" "hgrc" "inf" "cfg" "url" ".gitlint" ".pylintrc" "ini" ".coveragerc" )
+      htm.j2 ("html.j2" "htm.j2" "xhtml.j2" "xml.j2" )
+      jinja2 ("jinja2" "j2" "jinja" )
+      jsonnet ("libsonnet" "libjsonnet" "jsonnet" )
+      julia ("jl" "julia" )
+      kotlin ("kt" "kotlin" "kts" )
+      less ("less" "css.less" )
+      llvm ("ll" "llvm" )
+      lean ("lean" )
+      manpage ("manpage" "man" )
+      mediawikerpanel ("mediawikerpanel" )
+      mediawiki ("wikipedia" "mediawiki" "wiki" )
+      meminfo ("meminfo" )
+      nginx ("fastcgi_params" "scgi_params" "conf" "nginx.conf" "uwsgi_params" "conf.erb" "mime.types" "nginx" )
+      nim ("nims" "nimble" "nim" )
       ninja ("ninja" )
       nix ("nix" )
-      objective-c ("m" "h" "objective-c" )
-      objective-c++ ("mm" "m" "h" "objective-c++" )
-      ocaml ("ml" "mli" "ocaml" )
-      ocamllex ("mll" "ocamllex" )
-      ocamlyacc ("mly" "ocamlyacc" )
       orgmode ("org" "orgmode" )
-      pascal ("pas" "p" "dpr" "pascal" )
       passwd ("passwd" )
-      pb.txt ("pb.txt" "proto.text" "textpb" "pbtxt" "prototxt" )
-      perl ("pl" "pc" "pm" "pmc" "pod" "t" "perl" )
-      php ("php" "php3" "php4" "php5" "php7" "phps" "phpt" "phtml" )
-      properties ("properties" )
       proto ("proto" "protodevel" )
-      puppet ("pp" "epp" "puppet" )
+      pb.txt ("proto.text" "pbtxt" "pb.txt" "textpb" "prototxt" )
+      puppet ("puppet" "pp" "epp" )
       purescript ("purs" "purescript" )
-      python ("py" "py3" "pyw" "pyi" "pyx" "pyx.in" "pxd" "pxd.in" "pxi" "pxi.in" "rpy" "cpy" "sconstruct" "sconstruct" "sconstruct" "sconscript" "gyp" "gypi" "snakefile" "vpy" "wscript" "bazel" "bzl" "python" )
       qml ("qml" "qmlproject" )
-      r ("r" "r" "rprofile" )
-      racket ("rkt" "racket" )
-      rails ("rails" "rhtml" "erb" "html.erb" )
-      rd ("rd" )
-      re ("re" )
+      racket ("racket" "rkt" )
       rego ("rego" )
       requirements.txt ("requirements.txt" "requirements.in" "pip" )
       resolv ("resolv.conf" "resolv" )
-      restructuredtext ("rst" "rest" "restructuredtext" )
       robot ("robot" "resource" )
-      ruby ("rb" "appfile" "appraisals" "berksfile" "brewfile" "capfile" "cgi" "cheffile" "config.ru" "deliverfile" "fastfile" "fcgi" "gemfile" "gemspec" "guardfile" "irbrc" "jbuilder" "podfile" "podspec" "prawn" "rabl" "rake" "rakefile" "rantfile" "rbx" "rjs" "ruby.rail" "scanfile" "simplecov" "snapfile" "thor" "thorfile" "vagrantfile" "ruby" )
-      rust ("rs" "rust" )
-      rxml ("rxml" "builder" )
-      scala ("scala" "sbt" "sc" )
       scss ("scss" )
-      shell-unix-generic ("shell-unix-generic" )
-      show-nonprintable ("show-nonprintable" )
+      sml ("cm" "sml" "sig" )
       slim ("slim" "skim" )
-      sml ("sml" "cm" "sig" )
+      strace ("strace" )
+      stylus ("stylus" "styl" )
       solidity ("sol" "solidity" )
-      sql ("sql" "ddl" "dml" )
+      vyper ("vy" "vyper" )
+      jq ("jq" )
+      svelte ("svelte" "svlt" )
+      swift ("swift" )
+      systemverilog ("sv" "systemverilog" "svh" "vh" )
+      toml ("cargo.lock" "poetry.lock" "pipfile" "pdm.lock" "tml" "toml" "gopkg.lock" )
+      tfstate ("tfstate" )
+      terraform ("hcl" "terraform" "tf" "tfvars" )
+      todo.txt ("todo.txt" "done.txt" )
+      typescript ("mts" "ts" "cts" "typescript" )
+      typescriptreact ("tsx" "typescriptreact" )
+      verilog ("verilog" "v" )
+      viml ("_gvimrc" "gvimrc" ".vimrc" "viml" "vimrc" "_vimrc" ".gvimrc" "vim" )
+      vue ("vue" )
+      zig ("zig" )
+      gnuplot ("plt" "gnuplot" "gpl" "gnu" "gp" "plot" )
+      http ("http" )
+      log ("log" )
+      show-nonprintable ("show-nonprintable" )
+      authorized_keys ("authorized_keys" "pub" "authorized_keys2" )
+      known_hosts ("known_hosts.old" "known_hosts" )
       ssh_config ("ssh_config" )
       sshd_config ("sshd_config" )
-      strace ("strace" )
-      stylus ("styl" "stylus" )
-      svelte ("svlt" "svelte" )
-      swift ("swift" )
       syslog ("syslog" )
-      systemverilog ("sv" "v" "svh" "vh" "systemverilog" )
-      tcl ("tcl" )
-      terraform ("tf" "tfvars" "hcl" "terraform" )
-      tex ("sty" "cls" "tex" )
-      textile ("textile" )
-      tfstate ("tfstate" )
-      todo.txt ("todo.txt" "done.txt" )
-      toml ("toml" "tml" "cargo.lock" "gopkg.lock" "pipfile" "pdm.lock" "poetry.lock" )
-      twig ("twig" "html.twig" )
-      txt ("txt" )
-      typescript ("ts" "mts" "cts" "typescript" )
-      typescriptreact ("tsx" "typescriptreact" )
-      typst ("typ" "typc" "typst" )
       varlink ("varlink" )
-      verilog ("v" "v" "verilog" )
-      viml ("vim" "vimrc" "gvimrc" ".vimrc" ".gvimrc" "_vimrc" "_gvimrc" "viml" )
-      vue ("vue" )
-      vyper ("vy" "vyper" )
-      xml ("xml" "xsd" "xslt" "tld" "dtml" "rng" "rss" "opml" "svg" "xaml" )
-      yaml ("yaml" "yml" "sublime-syntax" )
-      yasm ("yasm" "nasm" "asm" "inc" "mac" )
-      yaws ("yaws" )
-      zig ("zig" )
+      typst ("typc" "typst" "typ" )
 
       ))
   "Tree sitter language -> Raw block tags map.
@@ -221,216 +221,203 @@ Please use function `typst-ts-els--add-treesit-range-rules' and
 
 (defvar typst-ts-els-tag-lang-map
   #s(hash-table
-     size 626
+     size 588
      test equal
      data
      (
-      ".git" .git ".mailmap" .mailmap "mailmap" .mailmap
-      "as" actionscript "actionscript" actionscript "adb" ada
-      "ads" ada "gpr" ada "ada" ada
-      "adoc" adoc "ad" adoc "asciidoc" adoc
-      "adp" adp "applescript" applescript "script editor" applescript
-      "asa" asp "asp" asp "asp" asp
-      "attributes" attributes "gitattributes" attributes ".gitattributes" attributes
-      "authorized_keys" authorized_keys "pub" authorized_keys "authorized_keys2" authorized_keys
-      "awk" awk "sh" bash "bash" bash
-      "zsh" bash "ash" bash ".bash_aliases" bash
-      ".bash_completions" bash ".bash_functions" bash ".bash_login" bash
-      ".bash_logout" bash ".bash_profile" bash ".bash_variables" bash
-      ".bashrc" bash ".profile" bash ".textmate_init" bash
-      ".zlogin" bash ".zlogout" bash ".zprofile" bash
-      ".zshenv" bash ".zshrc" bash "pkgbuild" bash
-      "ebuild" bash "eclass" bash "bat" bat
-      "cmd" bat "bib" bibtex "bibtex" bibtex
-      "build" build "c" c "h" c
-      "cs" c-sharp "csx" c-sharp "c#" c-sharp
-      "cabal" cabal "camlp4" camlp4 "clj" clojure
-      "cljc" clojure "cljs" clojure "edn" clojure
-      "clojure" clojure "cmakelists.txt" cmake "cmake" cmake
-      "cmakecache.txt" cmakecache "cmakecache" cmakecache "cmakecommands" cmakecommands
-      "coffee" coffeescript "cakefile" coffeescript "coffee.erb" coffeescript
-      "cson" coffeescript "coffeescript" coffeescript "commands-builtin-shell-bash" commands-builtin-shell-bash
-      "commit_editmsg" commit_editmsg "merge_msg" commit_editmsg "tag_editmsg" commit_editmsg
-      "clisp" commonlisp "cpp" cpp "cc" cpp
-      "cp" cpp "cxx" cpp "c++" cpp
-      "c" cpp "h" cpp "hh" cpp
-      "hpp" cpp "hxx" cpp "h++" cpp
-      "inl" cpp "ipp" cpp "cpuinfo" cpuinfo
-      "tab" crontab "crontab" crontab "cron.d" crontab
-      "cr" crystal "crystal" crystal "css" css
-      "css.erb" css "css.liquid" css "csv" csv
-      "tsv" csv "d" d "di" d
-      "dart" dart "diff" diff "patch" diff
-      "dockerfile" dockerfile "dockerfile" dockerfile "dot" dot
-      "dot" dot "gv" dot ".env" dotenv
-      ".env.dist" dotenv ".env.local" dotenv ".env.sample" dotenv
-      ".env.example" dotenv ".env.template" dotenv ".env.test" dotenv
-      ".env.test.local" dotenv ".env.testing" dotenv ".env.dev" dotenv
-      ".env.development" dotenv ".env.development.local" dotenv ".env.prod" dotenv
-      ".env.production" dotenv ".env.production.local" dotenv ".env.dusk.local" dotenv
-      ".env.staging" dotenv ".env.default" dotenv ".env.defaults" dotenv
-      ".envrc" dotenv ".flaskenv" dotenv "env" dotenv
-      "env.example" dotenv "env.sample" dotenv "env.template" dotenv
-      "dotenv" dotenv "ex" elixir "exs" elixir
-      "elixir" elixir "elm" elm "eml" email
-      "msg" email "mbx" email "mboxz" email
-      "email" email "envvars" envvars "htaccess" envvars
-      "htaccess" envvars "htgroups" envvars "htgroups" envvars
-      "htpasswd" envvars "htpasswd" envvars ".htaccess" envvars
-      ".htaccess" envvars ".htgroups" envvars ".htgroups" envvars
-      ".htpasswd" envvars ".htpasswd" envvars "erbsql" erbsql
-      "sql.erb" erbsql "erl" erlang "hrl" erlang
-      "emakefile" erlang "emakefile" erlang "escript" erlang
-      "erlang" erlang "exclude" exclude "gitignore" exclude
-      ".gitignore" exclude "f" f "f" f
-      "f77" f "f77" f "for" f
-      "for" f "fpp" f "fpp" f
-      "f90" f90 "f90" f90 "f95" f90
-      "f95" f90 "f03" f90 "f03" f90
-      "f08" f90 "f08" f90 "fish" fish
-      "fs" fs "fsi" fs "fsx" fs
-      "f#" fs "fstab" fstab "crypttab" fstab
-      "mtab" fstab "git-rebase-todo" git-rebase-todo "gitconfig" gitconfig
-      ".gitconfig" gitconfig ".gitmodules" gitconfig "gitlog" gitlog
-      "vs" glsl "fs" glsl "gs" glsl
-      "vsh" glsl "fsh" glsl "gsh" glsl
-      "vshader" glsl "fshader" glsl "gshader" glsl
-      "vert" glsl "frag" glsl "geom" glsl
-      "tesc" glsl "tese" glsl "comp" glsl
-      "glsl" glsl "mesh" glsl "task" glsl
-      "rgen" glsl "rint" glsl "rahit" glsl
-      "rchit" glsl "rmiss" glsl "rcall" glsl
-      "gp" gnuplot "gpl" gnuplot "gnuplot" gnuplot
-      "gnu" gnuplot "plot" gnuplot "plt" gnuplot
-      "go" go "graphql" graphql "graphqls" graphql
-      "gql" graphql "groff" groff/troff "troff" groff/troff
-      "1" groff/troff "2" groff/troff "3" groff/troff
-      "4" groff/troff "5" groff/troff "6" groff/troff
-      "7" groff/troff "8" groff/troff "9" groff/troff
-      "groff/troff" groff/troff "groovy" groovy "gvy" groovy
-      "gradle" groovy "jenkinsfile" groovy "group" group
-      "h.in" h.in "haml" haml "sass" haml
-      "hs" haskell "haskell" haskell "hh.in" hh.in
-      "hpp.in" hh.in "hxx.in" hh.in "h++.in" hh.in
-      "hosts" hosts "htm.j2" htm.j2 "html.j2" htm.j2
-      "xhtml.j2" htm.j2 "xml.j2" htm.j2 "html" html
-      "htm" html "shtml" html "xhtml" html
-      "html.eex" html.eex "html.leex" html.eex "http" http
-      "ini" ini "ini" ini "inf" ini
-      "inf" ini "reg" ini "reg" ini
-      "lng" ini "cfg" ini "cfg" ini
-      "desktop" ini "url" ini "url" ini
-      ".editorconfig" ini ".coveragerc" ini ".pylintrc" ini
-      ".gitlint" ini ".hgrc" ini "hgrc" ini
-      "java" java "bsh" java "javadoc" javadoc
-      "js" javascript "htc" javascript "javascript" javascript
-      "j2" jinja2 "jinja2" jinja2 "jinja" jinja2
-      "jq" jq "js.erb" js.erb "json" json
-      "sublime-settings" json "sublime-menu" json "sublime-keymap" json
-      "sublime-mousemap" json "sublime-theme" json "sublime-build" json
-      "sublime-project" json "sublime-completions" json "sublime-commands" json
-      "sublime-macro" json "sublime-color-scheme" json "ipynb" json
-      "pipfile.lock" json "jsonnet" jsonnet "libsonnet" jsonnet
-      "libjsonnet" jsonnet "jsp" jsp "jl" julia
-      "julia" julia "known_hosts" known_hosts "known_hosts.old" known_hosts
-      "kt" kotlin "kts" kotlin "kotlin" kotlin
-      "tex" latex "ltx" latex "latex" latex
-      "lean" lean "less" less "css.less" less
-      "lhs" lhs "lisp" lisp "cl" lisp
-      "l" lisp "mud" lisp "el" lisp
-      "scm" lisp "ss" lisp "lsp" lisp
-      "fasl" lisp "ll" llvm "llvm" llvm
-      "log" log "lua" lua "make" makefile
-      "gnumakefile" makefile "makefile" makefile "makefile" makefile
-      "makefile.am" makefile "makefile.am" makefile "makefile.in" makefile
-      "makefile.in" makefile "ocamlmakefile" makefile "mak" makefile
-      "mk" makefile "man" manpage "manpage" manpage
-      "md" markdown "mdown" markdown "markdown" markdown
-      "markdn" markdown "matlab" matlab "mediawikerpanel" mediawikerpanel
-      "mediawiki" mediawiki "wikipedia" mediawiki "wiki" mediawiki
-      "meminfo" meminfo "multimarkdown" multimarkdown "namelist" namelist
-      "conf.erb" nginx "conf" nginx "nginx.conf" nginx
-      "mime.types" nginx "fastcgi_params" nginx "scgi_params" nginx
-      "uwsgi_params" nginx "nginx" nginx "nim" nim
-      "nims" nim "nimble" nim "ninja" ninja
-      "nix" nix "m" objective-c "h" objective-c
-      "objective-c" objective-c "mm" objective-c++ "m" objective-c++
-      "h" objective-c++ "objective-c++" objective-c++ "ml" ocaml
-      "mli" ocaml "ocaml" ocaml "mll" ocamllex
+      "txt" txt "asp" asp "asa" asp
+      "as" actionscript "actionscript" actionscript "applescript" applescript
+      "script editor" applescript "bat" bat "cmd" bat
+      "build" build "c#" c-sharp "csx" c-sharp
+      "cs" c-sharp "c++" cpp "h++" cpp
+      "hxx" cpp "cpp" cpp "hpp" cpp
+      "ipp" cpp "hh" cpp "inl" cpp
+      "cxx" cpp "cc" cpp "cp" cpp
+      "c" c "css.liquid" css "css" css
+      "css.erb" css "cljs" clojure "clj" clojure
+      "cljc" clojure "edn" clojure "clojure" clojure
+      "di" d "d" d "patch" diff
+      "diff" diff "escript" erlang "erlang" erlang
+      "erl" erlang "hrl" erlang "emakefile" erlang
+      "yaws" yaws "gitattributes" attributes ".gitattributes" attributes
+      "attributes" attributes "tag_editmsg" commit_editmsg "commit_editmsg" commit_editmsg
+      "merge_msg" commit_editmsg ".gitconfig" gitconfig ".gitmodules" gitconfig
+      "gitconfig" gitconfig "gitignore" exclude ".gitignore" exclude
+      "exclude" exclude ".git" .git "gitlog" gitlog
+      "mailmap" .mailmap ".mailmap" .mailmap "git-rebase-todo" git-rebase-todo
+      "go" go "gv" dot "dot" dot
+      "gvy" groovy "gradle" groovy "groovy" groovy
+      "jenkinsfile" groovy "html" html "htm" html
+      "shtml" html "xhtml" html "hs" haskell
+      "haskell" haskell "lhs" lhs "ipynb" json
+      "sublime-macro" json "sublime-project" json "sublime-completions" json
+      "sublime-keymap" json "sublime-settings" json "sublime-mousemap" json
+      "sublime-commands" json "sublime-color-scheme" json "pipfile.lock" json
+      "sublime-menu" json "sublime-build" json "json" json
+      "sublime-theme" json "jsp" jsp "java" java
+      "bsh" java "javadoc" javadoc "properties" properties
+      "htc" javascript "js" javascript "javascript" javascript
+      "bib" bibtex "bibtex" bibtex "ltx" latex
+      "latex" latex "sty" tex "cls" tex
+      "tex" tex "clisp" commonlisp "fasl" lisp
+      "el" lisp "lisp" lisp "l" lisp
+      "mud" lisp "lsp" lisp "cl" lisp
+      "scm" lisp "ss" lisp "lua" lua
+      "makefile.am" makefile "mk" makefile "makefile.in" makefile
+      "make" makefile "makefile" makefile "gnumakefile" makefile
+      "mak" makefile "ocamlmakefile" makefile "mdown" markdown
+      "markdn" markdown "md" markdown "markdown" markdown
+      "multimarkdown" multimarkdown "matlab" matlab "ml" ocaml
+      "ocaml" ocaml "mli" ocaml "mll" ocamllex
       "ocamllex" ocamllex "mly" ocamlyacc "ocamlyacc" ocamlyacc
-      "org" orgmode "orgmode" orgmode "pas" pascal
-      "p" pascal "dpr" pascal "pascal" pascal
-      "passwd" passwd "pb.txt" pb.txt "proto.text" pb.txt
-      "textpb" pb.txt "pbtxt" pb.txt "prototxt" pb.txt
-      "pl" perl "pc" perl "pm" perl
-      "pmc" perl "pod" perl "t" perl
-      "perl" perl "php" php "php3" php
-      "php4" php "php5" php "php7" php
-      "phps" php "phpt" php "phtml" php
-      "properties" properties "proto" proto "protodevel" proto
-      "pp" puppet "epp" puppet "puppet" puppet
-      "purs" purescript "purescript" purescript "py" python
-      "py3" python "pyw" python "pyi" python
-      "pyx" python "pyx.in" python "pxd" python
-      "pxd.in" python "pxi" python "pxi.in" python
-      "rpy" python "cpy" python "sconstruct" python
-      "sconstruct" python "sconstruct" python "sconscript" python
-      "gyp" python "gypi" python "snakefile" python
-      "vpy" python "wscript" python "bazel" python
-      "bzl" python "python" python "qml" qml
-      "qmlproject" qml "r" r "r" r
-      "rprofile" r "rkt" racket "racket" racket
-      "rails" rails "rhtml" rails "erb" rails
-      "html.erb" rails "rd" rd "re" re
-      "rego" rego "requirements.txt" requirements.txt "requirements.in" requirements.txt
-      "pip" requirements.txt "resolv.conf" resolv "resolv" resolv
-      "rst" restructuredtext "rest" restructuredtext "restructuredtext" restructuredtext
-      "robot" robot "resource" robot "rb" ruby
-      "appfile" ruby "appraisals" ruby "berksfile" ruby
-      "brewfile" ruby "capfile" ruby "cgi" ruby
-      "cheffile" ruby "config.ru" ruby "deliverfile" ruby
-      "fastfile" ruby "fcgi" ruby "gemfile" ruby
-      "gemspec" ruby "guardfile" ruby "irbrc" ruby
-      "jbuilder" ruby "podfile" ruby "podspec" ruby
-      "prawn" ruby "rabl" ruby "rake" ruby
-      "rakefile" ruby "rantfile" ruby "rbx" ruby
-      "rjs" ruby "ruby.rail" ruby "scanfile" ruby
-      "simplecov" ruby "snapfile" ruby "thor" ruby
-      "thorfile" ruby "vagrantfile" ruby "ruby" ruby
-      "rs" rust "rust" rust "rxml" rxml
-      "builder" rxml "scala" scala "sbt" scala
-      "sc" scala "scss" scss "shell-unix-generic" shell-unix-generic
-      "show-nonprintable" show-nonprintable "slim" slim "skim" slim
-      "sml" sml "cm" sml "sig" sml
-      "sol" solidity "solidity" solidity "sql" sql
-      "ddl" sql "dml" sql "ssh_config" ssh_config
-      "sshd_config" sshd_config "strace" strace "styl" stylus
-      "stylus" stylus "svlt" svelte "svelte" svelte
-      "swift" swift "syslog" syslog "sv" systemverilog
-      "v" systemverilog "svh" systemverilog "vh" systemverilog
-      "systemverilog" systemverilog "tcl" tcl "tf" terraform
-      "tfvars" terraform "hcl" terraform "terraform" terraform
-      "sty" tex "cls" tex "tex" tex
-      "textile" textile "tfstate" tfstate "todo.txt" todo.txt
-      "done.txt" todo.txt "toml" toml "tml" toml
-      "cargo.lock" toml "gopkg.lock" toml "pipfile" toml
-      "pdm.lock" toml "poetry.lock" toml "twig" twig
-      "html.twig" twig "txt" txt "ts" typescript
-      "mts" typescript "cts" typescript "typescript" typescript
-      "tsx" typescriptreact "typescriptreact" typescriptreact "typ" typst
-      "typc" typst "typst" typst "varlink" varlink
-      "v" verilog "v" verilog "verilog" verilog
-      "vim" viml "vimrc" viml "gvimrc" viml
-      ".vimrc" viml ".gvimrc" viml "_vimrc" viml
-      "_gvimrc" viml "viml" viml "vue" vue
-      "vy" vyper "vyper" vyper "xml" xml
-      "xsd" xml "xslt" xml "tld" xml
-      "dtml" xml "rng" xml "rss" xml
-      "opml" xml "svg" xml "xaml" xml
+      "camlp4" camlp4 "objective-c++" objective-c++ "mm" objective-c++
+      "objective-c" objective-c "h" objective-c "m" objective-c
+      "php" php "phps" php "php3" php
+      "phpt" php "phtml" php "php7" php
+      "php5" php "php4" php "pascal" pascal
+      "dpr" pascal "p" pascal "pas" pascal
+      "pm" perl "pmc" perl "perl" perl
+      "pl" perl "pc" perl "pod" perl
+      "t" perl "py" python "pxi.in" python
+      "pxi" python "rpy" python "sconstruct" python
+      "pyi" python "gypi" python "pyw" python
+      "bazel" python "python" python "pyx.in" python
+      "wscript" python "pxd" python "pyx" python
+      "sconscript" python "pxd.in" python "snakefile" python
+      "py3" python "gyp" python "vpy" python
+      "bzl" python "cpy" python "r" r
+      "rprofile" r "rd" rd "rails" rails
+      "rhtml" rails "erb" rails "html.erb" rails
+      "js.erb" js.erb "haml" haml "sass" haml
+      "builder" rxml "rxml" rxml "erbsql" erbsql
+      "sql.erb" erbsql "re" re "rest" restructuredtext
+      "restructuredtext" restructuredtext "rst" restructuredtext "capfile" ruby
+      "simplecov" ruby "thor" ruby "berksfile" ruby
+      "thorfile" ruby "cheffile" ruby "podspec" ruby
+      "config.ru" ruby "rjs" ruby "vagrantfile" ruby
+      "ruby" ruby "deliverfile" ruby "rb" ruby
+      "guardfile" ruby "ruby.rail" ruby "irbrc" ruby
+      "fastfile" ruby "fcgi" ruby "rabl" ruby
+      "rantfile" ruby "prawn" ruby "appfile" ruby
+      "appraisals" ruby "scanfile" ruby "brewfile" ruby
+      "podfile" ruby "gemfile" ruby "gemspec" ruby
+      "jbuilder" ruby "rake" ruby "rbx" ruby
+      "snapfile" ruby "rakefile" ruby "cgi" ruby
+      "rust" rust "rs" rust "ddl" sql
+      "dml" sql "sql" sql "scala" scala
+      "sbt" scala "sc" scala "pkgbuild" bash
+      "zsh" bash "bash" bash "ash" bash
+      ".zprofile" bash "sh" bash "eclass" bash
+      ".bash_functions" bash ".bash_logout" bash ".bash_completions" bash
+      ".bash_aliases" bash "ebuild" bash ".bash_profile" bash
+      ".zshrc" bash ".textmate_init" bash ".zlogin" bash
+      ".zshenv" bash ".profile" bash ".bash_variables" bash
+      ".bash_login" bash ".zlogout" bash ".bashrc" bash
+      "shell-unix-generic" shell-unix-generic "commands-builtin-shell-bash" commands-builtin-shell-bash "adp" adp
+      "tcl" tcl "textile" textile "xsd" xml
+      "rss" xml "xslt" xml "dtml" xml
+      "opml" xml "tld" xml "rng" xml
+      "xml" xml "svg" xml "xaml" xml
       "yaml" yaml "yml" yaml "sublime-syntax" yaml
-      "yasm" yasm "nasm" yasm "asm" yasm
-      "inc" yasm "mac" yasm "yaws" yaws
-      "zig" zig
+      "awk" awk "ads" ada "adb" ada
+      "gpr" ada "ada" ada ".htpasswd" envvars
+      "htpasswd" envvars ".htaccess" envvars "htaccess" envvars
+      "htgroups" envvars ".htgroups" envvars "envvars" envvars
+      "ad" adoc "asciidoc" adoc "adoc" adoc
+      "nasm" yasm "yasm" yasm "asm" yasm
+      "mac" yasm "inc" yasm "h.in" h.in
+      "hxx.in" hh.in "h++.in" hh.in "hh.in" hh.in
+      "hpp.in" hh.in "cmake" cmake "cmakelists.txt" cmake
+      "cmakecache" cmakecache "cmakecache.txt" cmakecache "cmakecommands" cmakecommands
+      "tsv" csv "csv" csv "cabal" cabal
+      "cson" coffeescript "coffeescript" coffeescript "coffee" coffeescript
+      "coffee.erb" coffeescript "cakefile" coffeescript "cpuinfo" cpuinfo
+      "tab" crontab "cron.d" crontab "crontab" crontab
+      "crystal" crystal "cr" crystal "dart" dart
+      "dockerfile" dockerfile "env.template" dotenv ".env.production" dotenv
+      ".flaskenv" dotenv ".envrc" dotenv ".env.testing" dotenv
+      ".env.dusk.local" dotenv "env.example" dotenv "env.sample" dotenv
+      ".env.development" dotenv ".env.defaults" dotenv ".env.test" dotenv
+      ".env" dotenv ".env.local" dotenv ".env.prod" dotenv
+      ".env.dist" dotenv ".env.test.local" dotenv ".env.dev" dotenv
+      ".env.production.local" dotenv "env" dotenv "dotenv" dotenv
+      ".env.sample" dotenv ".env.default" dotenv ".env.example" dotenv
+      ".env.development.local" dotenv ".env.template" dotenv ".env.staging" dotenv
+      "exs" elixir "ex" elixir "elixir" elixir
+      "html.leex" html.eex "html.eex" html.eex "elm" elm
+      "eml" email "msg" email "mboxz" email
+      "email" email "mbx" email "fsi" fs
+      "f#" fs "fsx" fs "fish" fish
+      "f77" f "fpp" f "f" f
+      "for" f "f08" f90 "f90" f90
+      "f95" f90 "f03" f90 "namelist" namelist
+      "fstab" fstab "crypttab" fstab "mtab" fstab
+      "rahit" glsl "vshader" glsl "tesc" glsl
+      "vert" glsl "rcall" glsl "vsh" glsl
+      "frag" glsl "comp" glsl "task" glsl
+      "rgen" glsl "tese" glsl "gsh" glsl
+      "fs" glsl "rchit" glsl "fshader" glsl
+      "vs" glsl "gshader" glsl "gs" glsl
+      "rmiss" glsl "mesh" glsl "fsh" glsl
+      "geom" glsl "glsl" glsl "rint" glsl
+      "gql" graphql "graphqls" graphql "graphql" graphql
+      "9" groff/troff "3" groff/troff "groff" groff/troff
+      "4" groff/troff "6" groff/troff "8" groff/troff
+      "groff/troff" groff/troff "2" groff/troff "troff" groff/troff
+      "1" groff/troff "7" groff/troff "5" groff/troff
+      "group" group "twig" twig "html.twig" twig
+      "hosts" hosts "inf" ini "reg" ini
+      "desktop" ini "url" ini ".hgrc" ini
+      "cfg" ini ".editorconfig" ini ".gitlint" ini
+      "hgrc" ini "ini" ini "lng" ini
+      ".pylintrc" ini ".coveragerc" ini "htm.j2" htm.j2
+      "xhtml.j2" htm.j2 "html.j2" htm.j2 "xml.j2" htm.j2
+      "jinja" jinja2 "j2" jinja2 "jinja2" jinja2
+      "libsonnet" jsonnet "libjsonnet" jsonnet "jsonnet" jsonnet
+      "julia" julia "jl" julia "kts" kotlin
+      "kotlin" kotlin "kt" kotlin "less" less
+      "css.less" less "llvm" llvm "ll" llvm
+      "lean" lean "man" manpage "manpage" manpage
+      "mediawikerpanel" mediawikerpanel "wikipedia" mediawiki "wiki" mediawiki
+      "mediawiki" mediawiki "meminfo" meminfo "mime.types" nginx
+      "conf.erb" nginx "nginx.conf" nginx "scgi_params" nginx
+      "conf" nginx "fastcgi_params" nginx "nginx" nginx
+      "uwsgi_params" nginx "nimble" nim "nims" nim
+      "nim" nim "ninja" ninja "nix" nix
+      "orgmode" orgmode "org" orgmode "passwd" passwd
+      "proto" proto "protodevel" proto "pbtxt" pb.txt
+      "proto.text" pb.txt "prototxt" pb.txt "pb.txt" pb.txt
+      "textpb" pb.txt "pp" puppet "puppet" puppet
+      "epp" puppet "purescript" purescript "purs" purescript
+      "qml" qml "qmlproject" qml "rkt" racket
+      "racket" racket "rego" rego "requirements.txt" requirements.txt
+      "requirements.in" requirements.txt "pip" requirements.txt "resolv.conf" resolv
+      "resolv" resolv "resource" robot "robot" robot
+      "scss" scss "cm" sml "sig" sml
+      "sml" sml "skim" slim "slim" slim
+      "strace" strace "styl" stylus "stylus" stylus
+      "sol" solidity "solidity" solidity "vy" vyper
+      "vyper" vyper "jq" jq "svlt" svelte
+      "svelte" svelte "swift" swift "svh" systemverilog
+      "systemverilog" systemverilog "sv" systemverilog "vh" systemverilog
+      "pipfile" toml "tml" toml "cargo.lock" toml
+      "toml" toml "pdm.lock" toml "gopkg.lock" toml
+      "poetry.lock" toml "tfstate" tfstate "terraform" terraform
+      "tf" terraform "tfvars" terraform "hcl" terraform
+      "done.txt" todo.txt "todo.txt" todo.txt "typescript" typescript
+      "ts" typescript "mts" typescript "cts" typescript
+      "typescriptreact" typescriptreact "tsx" typescriptreact "verilog" verilog
+      "v" verilog ".gvimrc" viml "_gvimrc" viml
+      "viml" viml "gvimrc" viml "vim" viml
+      ".vimrc" viml "vimrc" viml "_vimrc" viml
+      "vue" vue "zig" zig "gp" gnuplot
+      "plt" gnuplot "gnu" gnuplot "gnuplot" gnuplot
+      "gpl" gnuplot "plot" gnuplot "http" http
+      "log" log "show-nonprintable" show-nonprintable "pub" authorized_keys
+      "authorized_keys" authorized_keys "authorized_keys2" authorized_keys "known_hosts" known_hosts
+      "known_hosts.old" known_hosts "ssh_config" ssh_config "sshd_config" sshd_config
+      "syslog" syslog "varlink" varlink "typc" typst
+      "typ" typst "typst" typst
       ))
   "Raw block tag -> tree sitter language map.
 Associated map: `typst-ts-els-lang-tags-map'.
@@ -439,6 +426,7 @@ Please use function `typst-ts-els--add-treesit-range-rules' and
 
 ;; to test settings:
 ;; emacs --batch -l ./typst-ts-embedding-lang-settings.el --eval "(typst-ts-embedding-lang-settings-test)"
+;; TODO some language includes other languages
 (defvar typst-ts-embedding-lang-settings
   '((bash . (:feature
              sh-script

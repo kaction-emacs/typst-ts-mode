@@ -5,9 +5,10 @@
 //     -> https://docs.rs/syntect/latest/src/syntect/parsing/syntax_set.rs.html#193-201
 
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap},
+    collections::{BTreeSet, HashMap, HashSet},
     hash::Hash,
 };
+use indexmap::IndexMap;
 
 fn main() {
     let syn_set = two_face::syntax::extra_no_newlines();
@@ -16,7 +17,8 @@ fn main() {
     let identifier_remap = get_identifier_remap();
 
     let mut langs: BTreeSet<String> = BTreeSet::new();
-    let mut lang_tags_map: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    // note: lower cace "F" and "f" -> "f" and "f", so use HashSet
+    let mut lang_tags_map: IndexMap<String, HashSet<String>> = IndexMap::new();
 
     for syntax in syn_set.syntaxes() {
         // println!("{} {:?}", syntax.name, syntax.file_extensions);
@@ -29,6 +31,7 @@ fn main() {
             .to_ascii_lowercase();
 
         let lang_identifier = if whitespace_in_lang_name || lang_name.contains('#') {
+            // # is not valid in Emacs lisp print expression
             let tag0 = syntax.file_extensions.first();
             if tag0.is_none() {
                 continue;
@@ -45,7 +48,7 @@ fn main() {
         langs.insert(remapped_identifier.clone());
 
         let mut lang_name_in_tags = false;
-        let mut tags: Vec<String> = Vec::new();
+        let mut tags: HashSet<String> = HashSet::new();
         for tag in syntax.file_extensions.iter() {
             let tag = tag.to_ascii_lowercase();
             if tag == lang_name {
@@ -54,20 +57,19 @@ fn main() {
             if let Some(new_identifier) = tag_remap.get(&tag) {
                 langs.insert(new_identifier.clone());
                 if let Some(tags) = lang_tags_map.get_mut(new_identifier) {
-                    (*tags).push(tag);
+                    (*tags).insert(tag);
                     continue;
                 }
-                lang_tags_map.insert(new_identifier.clone(), vec![tag]);
+                lang_tags_map.insert(new_identifier.clone(), HashSet::from([tag]));
                 continue;
             }
-            tags.push(tag);
+            tags.insert(tag);
         }
         if !(whitespace_in_lang_name || lang_name_in_tags) {
-            tags.push(lang_name);
+            tags.insert(lang_name);
         }
         if let Some(temp_tags) = lang_tags_map.get_mut(&remapped_identifier) {
-            (*temp_tags).append(&mut tags);
-            continue;
+            temp_tags.extend(tags);
         } else {
             lang_tags_map.insert(remapped_identifier.clone(), tags);
         }
@@ -75,8 +77,10 @@ fn main() {
     langs.insert("typst".to_string());
     lang_tags_map.insert(
         "typst".into(),
-        vec!["typ".into(), "typc".into(), "typst".into()],
+        HashSet::from(["typ".into(), "typc".into(), "typst".into()]),
     );
+
+    remove_duplicate_tags(&mut lang_tags_map);
 
     println!("---------- lang_identifiers --------------");
     println!("{:?}", langs);
@@ -88,6 +92,22 @@ fn main() {
     println!("{}", format_tag_lang_hash_table(&lang_tags_map));
 }
 
+fn remove_duplicate_tags(lang_tags_map: &mut IndexMap<String, HashSet<String>>) {
+    // according to https://docs.rs/syntect/latest/src/syntect/parsing/syntax_set.rs.html#185
+    // only keeps the last unique tag
+    let mut all_tags:HashSet<String> = HashSet::new();
+    for tags in lang_tags_map.values_mut().rev() {
+        tags.retain(|tag| {
+            if all_tags.contains(tag) {
+                false
+            } else {
+                all_tags.insert(tag.clone());
+                true
+            }
+        });
+    }
+}
+
 fn format_hash_table(total: u32, data_str: &String) -> String {
     format!(
         "#s(hash-table
@@ -96,10 +116,12 @@ test equal
 data
 (
 {}
-))", total, data_str)
+))",
+        total, data_str
+    )
 }
 
-fn format_lang_tags_hash_table(lang_tags_map: &BTreeMap<String, Vec<String>>) -> String {
+fn format_lang_tags_hash_table(lang_tags_map: &IndexMap<String, HashSet<String>>) -> String {
     let mut total: u32 = 0;
     let mut data_str = String::new();
     for (lang, tags) in lang_tags_map.iter() {
@@ -113,7 +135,7 @@ fn format_lang_tags_hash_table(lang_tags_map: &BTreeMap<String, Vec<String>>) ->
     format_hash_table(total + 10, &data_str)
 }
 
-fn format_tag_lang_hash_table(lang_tags_map: &BTreeMap<String, Vec<String>>) -> String {
+fn format_tag_lang_hash_table(lang_tags_map: &IndexMap<String, HashSet<String>>) -> String {
     const LINE_MAX_ENTRY_NUM: u32 = 3;
     let mut total: u32 = 0;
     let mut i: u32 = 0;
@@ -159,10 +181,6 @@ fn get_tag_remap() -> HashMap<String, String> {
 }
 
 fn get_identifier_remap() -> HashMap<String, String> {
-    let map = &[
-        ("sh", "bash"),
-        ("cs", "c-sharp"),
-        ("c++", "cpp")
-    ];
+    let map = &[("sh", "bash"), ("cs", "c-sharp"), ("c++", "cpp")];
     slice_to_hashmap(map)
 }
