@@ -14,7 +14,8 @@ _emph_ // emphasis
 "El Psy Kongraoo" // quote
 hello \ // line break
 `El Psy Kongraoo` // raw span
-```bash // raw block
+// raw block
+```bash
 sudo rm -rf *
 ```
 <label> // label

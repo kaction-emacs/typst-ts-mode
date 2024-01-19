@@ -107,7 +107,7 @@ because Typst itself do this style. You may find `auto-save-visited-mode`,
 7. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`
 
 ### Raw block highlighting
-
+Only support tree-sitter languages.  
 For more detailed documentation about raw block highlighting see 
 [this documentation](./doc/raw-block-highlighing.md)  
 1. `typst-ts-mode-enable-raw-blocks-highlight` (default `t`)  

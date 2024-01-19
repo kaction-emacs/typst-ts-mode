@@ -174,14 +174,30 @@ is eliminated."
 
 ;; Markup Faces =================================================================
 
+(defface typst-ts-markup-header-indicator-face
+  '((t :weight bold))
+  "Face for Typst ts markup header indicator.")
+
 (defface typst-ts-markup-header-face
   '((t :weight bold))
-  "The basic face for Typst ts markup headers.")
+  "Face for Typst ts markup headers text.")
+
+(defface typst-ts-markup-header-indicator-face-1
+  `((t :inherit typst-ts-markup-header-indicator-face
+       :height ,(nth 0 typst-ts-markup-header-scale)))
+  "See `typst-ts-markup-header-indicator-face'."
+  :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-1
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 0 typst-ts-markup-header-scale)))
   "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-header-indicator-face-2
+  `((t :inherit typst-ts-markup-header-indicator-face
+       :height ,(nth 1 typst-ts-markup-header-scale)))
+  "See `typst-ts-markup-header-indicator-face'."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-2
@@ -190,10 +206,22 @@ is eliminated."
   "See `typst-ts-markup-header-face'."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-header-indicator-face-3
+  `((t :inherit typst-ts-markup-header-indicator-face
+       :height ,(nth 2 typst-ts-markup-header-scale)))
+  "See `typst-ts-markup-header-indicator-face'."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-header-face-3
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 2 typst-ts-markup-header-scale)))
   "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-header-indicator-face-4
+  `((t :inherit typst-ts-markup-header-indicator-face
+       :height ,(nth 3 typst-ts-markup-header-scale)))
+  "See `typst-ts-markup-header-indicator-face'."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-4
@@ -202,10 +230,22 @@ is eliminated."
   "See `typst-ts-markup-header-face'."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-header-indicator-face-5
+  `((t :inherit typst-ts-markup-header-indicator-face
+       :height ,(nth 4 typst-ts-markup-header-scale)))
+  "See `typst-ts-markup-header-indicator-face'."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-header-face-5
   `((t :inherit typst-ts-markup-header-face
        :height ,(nth 4 typst-ts-markup-header-scale)))
   "See `typst-ts-markup-header-face'."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-header-indicator-face-6
+  `((t :inherit typst-ts-markup-header-indicator-face
+       :height ,(nth 5 typst-ts-markup-header-scale)))
+  "See `typst-ts-markup-header-indicator-face'."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-header-face-6
@@ -219,9 +259,19 @@ is eliminated."
   "Face for url."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-emphasis-indicator-face
+  '((t :inherit italic))
+  "Face for emphasis."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-emphasis-face
   '((t :inherit italic))
   "Face for emphasis."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-strong-indicator-face
+  '((t :inherit bold))
+  "Face for strong."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-strong-face
@@ -229,17 +279,14 @@ is eliminated."
   "Face for strong."
   :group 'typst-ts-faces)
 
-(defface typst-ts-markup-item-face
+(defface typst-ts-markup-item-indicator-face
   '((t :inherit shadow))
   "Face for item."
   :group 'typst-ts-faces)
 
-;; NOTE: add a defcustom option to let user choose whether to only fontify the
-;; the whole element
-;; same as `typst-ts-markup-rawspan-face' and `typst-ts-markup-rawblock-face'
-(defface typst-ts-markup-term-face
-  nil
-  "Face for term."
+(defface typst-ts-markup-item-face
+  '((t :inherit default))
+  "Face for item."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-term-indicator-face
@@ -253,7 +300,7 @@ is eliminated."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-term-description-face
-  '((t :inherit normal))
+  '((t :inherit italic))
   "Face for term."
   :group 'typst-ts-faces)
 
@@ -282,11 +329,6 @@ is eliminated."
   "Face for rawblock and rawspan blob."
   :group 'typst-ts-faces)
 
-(defface typst-ts-markup-rawblock-face
-  '((t :inherit normal))
-  "Face for rawblock."
-  :group 'typst-ts-faces)
-
 (defface typst-ts-markup-rawblock-indicator-face
   '((t :inherit typst-ts-markup-raw-indicator-face))
   "Face for rawblock indicator."
@@ -300,11 +342,6 @@ is eliminated."
 (defface typst-ts-markup-rawblock-blob-face
   '((t :inherit typst-ts-markup-raw-blob-face))
   "Face for rawblock blob."
-  :group 'typst-ts-faces)
-
-(defface typst-ts-markup-rawspan-face
-  '((t :inherit normal))
-  "Face for rawspan."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-indicator-face
@@ -384,15 +421,41 @@ If you want to customize the rules, please customize the same name variable
     :language typst
     :feature markup-basic
     (,@(if typst-ts-markup-header-same-height
-           '((heading (text)) @typst-ts-markup-header-face)
-         '((heading "=" (text)) @typst-ts-markup-header-face-1
-           (heading "==" (text)) @typst-ts-markup-header-face-2
-           (heading "===" (text)) @typst-ts-markup-header-face-3
-           (heading "====" (text)) @typst-ts-markup-header-face-4
-           (heading "=====" (text)) @typst-ts-markup-header-face-5))
-     (emph) @typst-ts-markup-emphasis-face
-     (strong) @typst-ts-markup-strong-face
-     (item "-" @typst-ts-markup-item-face)
+           '((heading "=" @typst-ts-markup-header-indicator-face
+                      (text) @typst-ts-markup-header-face)
+             (heading "==" @typst-ts-markup-header-indicator-face
+                      (text) @typst-ts-markup-header-face)
+             (heading "===" @typst-ts-markup-header-indicator-face
+                      (text) @typst-ts-markup-header-face)
+             (heading "====" @typst-ts-markup-header-indicator-face
+                      (text) @typst-ts-markup-header-face)
+             (heading "=====" @typst-ts-markup-header-indicator-face
+                      (text) @typst-ts-markup-header-face)
+             (heading "======" @typst-ts-markup-header-indicator-face
+                      (text) @typst-ts-markup-header-face))
+         '((heading "=" @typst-ts-markup-header-indicator-face-1
+                    (text) @typst-ts-markup-header-face-1)
+           (heading "==" @typst-ts-markup-header-indicator-face-2
+                    (text) @typst-ts-markup-header-face-2)
+           (heading "===" @typst-ts-markup-header-indicator-face-3
+                    (text) @typst-ts-markup-header-face-3)
+           (heading "====" @typst-ts-markup-header-indicator-face-4
+                    (text) @typst-ts-markup-header-face-4)
+           (heading "=====" @typst-ts-markup-header-indicator-face-5
+                    (text) @typst-ts-markup-header-face-5)
+           (heading "======" @typst-ts-markup-header-indicator-face-6
+                    (text) @typst-ts-markup-header-face-6)))
+     (emph
+      "_" @typst-ts-markup-emphasis-indicator-face
+      (text) @typst-ts-markup-emphasis-face
+      "_" @typst-ts-markup-emphasis-indicator-face)
+     (strong
+      "*" @typst-ts-markup-strong-indicator-face
+      (text) @typst-ts-markup-strong-face
+      "*" @typst-ts-markup-strong-indicator-face)
+     (item
+      "-" @typst-ts-markup-item-indicator-face
+      (text) @typst-ts-markup-item-face)
      (term
       "/" @typst-ts-markup-term-indicator-face
       term: (text) @typst-ts-markup-term-term-face
