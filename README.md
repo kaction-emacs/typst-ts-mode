@@ -67,7 +67,9 @@ For reference, this is my configuration.
 (use-package typst-ts-mode
   :elpaca (:type git :host sourcehut :repo "meow_king/typst-ts-mode")
   :custom
-  (typst-ts-mode-watch-options "--open"))
+  (typst-ts-mode-watch-options "--open")
+  (typst-ts-mode-enable-raw-blocks-highlight t)
+  (typst-ts-mode-highlight-raw-blocks-at-startup t))
 ```
 
 ## Keys
@@ -87,28 +89,42 @@ defined by `outline-minor-mode` such as `outline-cycle`.
 
 ## Customization Options
 
-`customize` -> `typst-ts`
+For customizable options: `customize` -> `typst-ts`.  
 
-For some options you may find useful:
-1. `typst-ts-mode-indent-offset`
-2. `typst-ts-mode-executable-location`
-3. `typst-ts-mode-watch-options`. Set this to `--open` so typst will open the compiled
-file for you.
-4. `typst-ts-mode-compile-options`. Note that setting `--open` has no use for this
-customization variable. You can execute the shell command 
-`typst compile <file> --open && sleep 1` to view what is happening. 
-5. `typst-ts-mode-display-watch-process-bufer-automatically`. This is set to `t` by
-default, so the `typst watch` process buffer appear when an error occurs, and disappear
-when there is no error. You may find sometimes there is only one error at a time, and it is
-because Typst itself do this style. You may find `auto-save-visited-mode`,
-[auto-save](https://github.com/manateelazycat/auto-save) or 
-[super-save](https://github.com/bbatsov/super-save) useful (or annoying).
-6. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale` to control header height. 
-7. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`
+Here are some options you may find useful:  
+1. `typst-ts-mode-indent-offset` (default 4)  
+2. `typst-ts-mode-executable-location`  
+3. `typst-ts-mode-watch-options`.  
+   Set this to `--open` so typst will open the compiled file for you.
+4. `typst-ts-mode-compile-options`.  
+   Note that setting `--open` has no use for this customization variable. 
+   You can execute the shell command `typst compile <file> --open && sleep 1`
+   to view what is happening. 
+5. `typst-ts-mode-display-watch-process-bufer-automatically`. (default `t`)  
+   so the `typst watch` process buffer appear when an error occurs, and 
+   disappear when there is no error. You may find sometimes there is only one 
+   error at a time, and it is because Typst itself do this style. 
+   You may find `auto-save-visited-mode`,
+   [auto-save](https://github.com/manateelazycat/auto-save) or 
+   [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
+6. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`  
+
+### Fontification
+1. `typst-ts-mode-fontification-precise-level` (default `'middle`)  
+   Available values: `min`, `middle` and `max`. Different level affects the precision
+   of the fontification. For example, `- item`, we may fontify the whole expression
+   using one face, or two faces. Note it is related to the performance of fontification
+   process, especially the first fontification process (when you open the file).  
+2. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale`  
+   Control header height. Note that it only works when `typst-ts-mode-fontification-precise-level`
+   is set to `max`.
+3. Override default font lock rules  
+   Please see the documentation of `typst-ts-mode-font-lock-rules`, you can find 
+   how to override the whole font lock rules or only small part of the font lock
+   rules.
 
 ### Raw block highlighting
 Only support tree-sitter languages.  
-This is an experimental feature, so it is disabled by default.
 For more detailed documentation about raw block highlighting see 
 [this documentation](./doc/raw-block-highlighing.md)  
 1. `typst-ts-mode-enable-raw-blocks-highlight` (default `nil`)  

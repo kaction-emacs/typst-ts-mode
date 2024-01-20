@@ -27,9 +27,6 @@
 
 ;; Tree Sitter Support for Typst
 
-;; TODO
-;; add more treesit settings at startup like `treesit-thing-settings'
-
 ;;; Code:
 
 (require 'treesit)
@@ -52,6 +49,17 @@
 (defcustom typst-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `typst-ts-mode'."
   :type 'integer
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-fontification-precision-level 'middle
+  "Whether to use precise face fontification.
+Note that precise face fontification will case performance degrading.
+The performance degrading is mainly on the first load of the file.  Since
+treesit incrementally fontifys regions (IMO), the later editing experience won't
+be noticeably affected probably."
+  :type '(choice (const :tag "Minimum level" min)
+                 (const :tag "Middle level" middle)
+                 (const :tag "Maximum level" max))
   :group 'typst-ts)
 
 ;; TODO currently set nil as default, since it still needs refinement
@@ -140,7 +148,9 @@ is eliminated."
   "Hook runs after compile.")
 
 (defcustom typst-ts-markup-header-same-height t
-  "Whether to make header face in markup context share the same height."
+  "Whether to make header face in markup context share the same height.
+Note it only works when user choose `max' level of fontification precision
+level.  See `typst-ts-mode-fontification-precision-level'."
   :type 'boolean
   :group 'typst-ts-faces)
 
@@ -280,29 +290,41 @@ is eliminated."
   "Face for strong."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-item-face
+  '((t :inherit shadow))
+  "Face for whole term, use in min and middle fontification level.
+See `typst-ts-mode-fontification-precision-level'."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-item-indicator-face
   '((t :inherit shadow))
   "Face for item."
   :group 'typst-ts-faces)
 
-(defface typst-ts-markup-item-face
+(defface typst-ts-markup-item-text-face
   '((t :inherit default))
   "Face for item."
   :group 'typst-ts-faces)
 
+(defface typst-ts-markup-term-face
+  '((t :inherit shadow))
+  "Face for whole term, use in min and middle fontification level.
+See `typst-ts-mode-fontification-precision-level'."
+  :group 'typst-ts-faces)
+
 (defface typst-ts-markup-term-indicator-face
   '((t :inherit shadow))
-  "Face for term."
+  "Face for term indicator."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-term-term-face
   '((t :inherit bold))
-  "Face for term."
+  "Face for term text."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-term-description-face
   '((t :inherit italic))
-  "Face for term."
+  "Face for term description."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-quote-face ;; TODO better choice?
@@ -326,8 +348,14 @@ is eliminated."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-raw-blob-face
-  '((t :inherit fixed-pitch))
+  '((t :inherit shadow))
   "Face for rawblock and rawspan blob."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-rawblock-face
+  '((t :inherit shadow))
+  "Face for whole raw block, use in min and middle fontification level.
+See `typst-ts-mode-fontification-precision-level'."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawblock-indicator-face
@@ -343,6 +371,12 @@ is eliminated."
 (defface typst-ts-markup-rawblock-blob-face
   '((t :inherit typst-ts-markup-raw-blob-face))
   "Face for rawblock blob."
+  :group 'typst-ts-faces)
+
+(defface typst-ts-markup-rawspan-face
+  '((t :inherit shadow))
+  "Face for whole raw span, use in min and middle fontification level.
+See `typst-ts-mode-fontification-precision-level'."
   :group 'typst-ts-faces)
 
 (defface typst-ts-markup-rawspan-indicator-face
@@ -394,7 +428,7 @@ is eliminated."
 
 (defvar typst-ts-mode-font-lock-rules
   nil
-  "You can customize this variable to override the default font lock rules.
+  "You can customize this variable to override the whole default font lock rules.
 Like this:
 
 (setq typst-ts-mode-font-lock-rules
@@ -403,162 +437,271 @@ Like this:
          \='(
            :language typst
            :type custom
-           ((el-psy-kongaroo) @el-psy-kongaroo))))")
+           ((el-psy-kongaroo) @el-psy-kongaroo))))
+
+However, if you only want to modify specific part of the font lock rules, please
+customize variables starts with `typst-ts-mode-font-lock-rules-'.  The trailing
+part of the name is in the `typst-ts-mode-font-lock-feature-list'.
+
+BTW, if you want to enable/disable specific font lock feature, please change
+`treesit-font-lock-level' or modify `typst-ts-mode-font-lock-feature-list'.")
+
+(defvar typst-ts-mode-font-lock-rules-comment nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-common nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-markup-basic nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-code-basic nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-math-basic nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-markup-standard nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-code-standard nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-math-standard nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-markup-extended nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-code-extended nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
+
+(defvar typst-ts-mode-font-lock-rules-math-extended nil
+  "See variable `typst-ts-mode-font-lock-rules'.")
 
 (defun typst-ts-mode-font-lock-rules ()
   "Generate font lock rules for `treesit-font-lock-rules'.
 If you want to customize the rules, please customize the same name variable
 `typst-ts-mode-font-lock-rules'."
-  `(;; Typst font locking
-    :language typst
-    :feature comment
-    ((comment) @font-lock-comment-face)
+  (let ((markup-basic
+         (pcase typst-ts-mode-fontification-precision-level
+           ('min
+            `((heading) @typst-ts-markup-header-face
+              (emph) @typst-ts-markup-emphasis-face
+              (strong) @typst-ts-markup-strong-face
+              (item) @typst-ts-markup-item-face
+              (term) @typst-ts-markup-term-face
+              (raw_span) @typst-ts-markup-rawspan-face
+              ,@(if typst-ts-mode-enable-raw-blocks-highlight
+                    '((raw_blck
+                       "```" @typst-ts-markup-rawblock-indicator-face
+                       (ident) :? @typst-ts-markup-rawblock-lang-face
+                       (blob)
+                       "```" @typst-ts-markup-rawblock-indicator-face))
+                  '((raw_blck) @typst-ts-markup-rawblock-face))
+              (label) @typst-ts-markup-label-face
+              (ref) @typst-ts-markup-reference-face))
+           ('middle
+            `((heading) @typst-ts-markup-header-face
+              (emph) @typst-ts-markup-emphasis-face
+              (strong) @typst-ts-markup-strong-face
+              (item
+               "-" @typst-ts-markup-item-indicator-face
+               (text) @typst-ts-markup-item-text-face)
+              (term
+               "/" @typst-ts-markup-term-indicator-face
+               term: (text) @typst-ts-markup-term-term-face
+               ":" @typst-ts-markup-term-indicator-face
+               (text) @typst-ts-markup-term-description-face)
+              (raw_span
+               "`" @typst-ts-markup-rawspan-indicator-face
+               (blob) @typst-ts-markup-rawspan-blob-face
+               "`" @typst-ts-markup-rawspan-indicator-face)
+              (raw_blck
+               "```" @typst-ts-markup-rawblock-indicator-face
+               (ident) :? @typst-ts-markup-rawblock-lang-face
+               ;; NOTE let embedded language fontify blob
+               ,@(if typst-ts-mode-enable-raw-blocks-highlight
+                     '((blob))
+                   '((blob) @typst-ts-markup-rawblock-blob-face))
+               "```" @typst-ts-markup-rawblock-indicator-face)
+              (label) @typst-ts-markup-label-face
+              (ref) @typst-ts-markup-reference-face))
+           ('max
+            `(,@(if typst-ts-markup-header-same-height
+                    '((heading "=" @typst-ts-markup-header-indicator-face
+                               (text) @typst-ts-markup-header-face)
+                      (heading "==" @typst-ts-markup-header-indicator-face
+                               (text) @typst-ts-markup-header-face)
+                      (heading "===" @typst-ts-markup-header-indicator-face
+                               (text) @typst-ts-markup-header-face)
+                      (heading "====" @typst-ts-markup-header-indicator-face
+                               (text) @typst-ts-markup-header-face)
+                      (heading "=====" @typst-ts-markup-header-indicator-face
+                               (text) @typst-ts-markup-header-face)
+                      (heading "======" @typst-ts-markup-header-indicator-face
+                               (text) @typst-ts-markup-header-face))
+                  '((heading "=" @typst-ts-markup-header-indicator-face-1
+                             (text) @typst-ts-markup-header-face-1)
+                    (heading "==" @typst-ts-markup-header-indicator-face-2
+                             (text) @typst-ts-markup-header-face-2)
+                    (heading "===" @typst-ts-markup-header-indicator-face-3
+                             (text) @typst-ts-markup-header-face-3)
+                    (heading "====" @typst-ts-markup-header-indicator-face-4
+                             (text) @typst-ts-markup-header-face-4)
+                    (heading "=====" @typst-ts-markup-header-indicator-face-5
+                             (text) @typst-ts-markup-header-face-5)
+                    (heading "======" @typst-ts-markup-header-indicator-face-6
+                             (text) @typst-ts-markup-header-face-6)))
+              (emph
+               "_" @typst-ts-markup-emphasis-indicator-face
+               (text) @typst-ts-markup-emphasis-face
+               "_" @typst-ts-markup-emphasis-indicator-face)
+              (strong
+               "*" @typst-ts-markup-strong-indicator-face
+               (text) @typst-ts-markup-strong-face
+               "*" @typst-ts-markup-strong-indicator-face)
+              (item
+               "-" @typst-ts-markup-item-indicator-face
+               (text) @typst-ts-markup-item-text-face)
+              (term
+               "/" @typst-ts-markup-term-indicator-face
+               term: (text) @typst-ts-markup-term-term-face
+               ":" @typst-ts-markup-term-indicator-face
+               (text) @typst-ts-markup-term-description-face)
+              (escape) @typst-ts-markup-escape-face
+              (raw_span
+               "`" @typst-ts-markup-rawspan-indicator-face
+               (blob) @typst-ts-markup-rawspan-blob-face
+               "`" @typst-ts-markup-rawspan-indicator-face)
+              (raw_blck
+               "```" @typst-ts-markup-rawblock-indicator-face
+               (ident) :? @typst-ts-markup-rawblock-lang-face
+               ;; NOTE let embedded language fontify blob
+               ,@(if typst-ts-mode-enable-raw-blocks-highlight
+                     '((blob))
+                   '((blob) @typst-ts-markup-rawblock-blob-face))
+               "```" @typst-ts-markup-rawblock-indicator-face)
+              (label) @typst-ts-markup-label-face  ; TODO more precise highlight (upstream)
+              (ref) @typst-ts-markup-reference-face)
+            ))))
+    `(;; Typst font locking
+      :language typst
+      :feature comment
+      ,(if typst-ts-mode-font-lock-rules-comment
+           typst-ts-mode-font-lock-rules-comment
+         '((comment) @font-lock-comment-face))
 
-    :language typst
-    :feature common
-    ((shorthand) @typst-ts-shorthand-face
-     (ERROR) @typst-ts-error-face)
+      :language typst
+      :feature common
+      ,(if typst-ts-mode-font-lock-rules-common
+           typst-ts-mode-font-lock-rules-common
+         '((shorthand) @typst-ts-shorthand-face
+           (ERROR) @typst-ts-error-face))
 
-    :language typst
-    :feature markup-basic
-    (,@(if typst-ts-markup-header-same-height
-           '((heading "=" @typst-ts-markup-header-indicator-face
-                      (text) @typst-ts-markup-header-face)
-             (heading "==" @typst-ts-markup-header-indicator-face
-                      (text) @typst-ts-markup-header-face)
-             (heading "===" @typst-ts-markup-header-indicator-face
-                      (text) @typst-ts-markup-header-face)
-             (heading "====" @typst-ts-markup-header-indicator-face
-                      (text) @typst-ts-markup-header-face)
-             (heading "=====" @typst-ts-markup-header-indicator-face
-                      (text) @typst-ts-markup-header-face)
-             (heading "======" @typst-ts-markup-header-indicator-face
-                      (text) @typst-ts-markup-header-face))
-         '((heading "=" @typst-ts-markup-header-indicator-face-1
-                    (text) @typst-ts-markup-header-face-1)
-           (heading "==" @typst-ts-markup-header-indicator-face-2
-                    (text) @typst-ts-markup-header-face-2)
-           (heading "===" @typst-ts-markup-header-indicator-face-3
-                    (text) @typst-ts-markup-header-face-3)
-           (heading "====" @typst-ts-markup-header-indicator-face-4
-                    (text) @typst-ts-markup-header-face-4)
-           (heading "=====" @typst-ts-markup-header-indicator-face-5
-                    (text) @typst-ts-markup-header-face-5)
-           (heading "======" @typst-ts-markup-header-indicator-face-6
-                    (text) @typst-ts-markup-header-face-6)))
-     (emph
-      "_" @typst-ts-markup-emphasis-indicator-face
-      (text) @typst-ts-markup-emphasis-face
-      "_" @typst-ts-markup-emphasis-indicator-face)
-     (strong
-      "*" @typst-ts-markup-strong-indicator-face
-      (text) @typst-ts-markup-strong-face
-      "*" @typst-ts-markup-strong-indicator-face)
-     (item
-      "-" @typst-ts-markup-item-indicator-face
-      (text) @typst-ts-markup-item-face)
-     (term
-      "/" @typst-ts-markup-term-indicator-face
-      term: (text) @typst-ts-markup-term-term-face
-      ":" @typst-ts-markup-term-indicator-face
-      (text) @typst-ts-markup-term-description-face)
-     (escape) @typst-ts-markup-escape-face
-     (raw_span
-      "`" @typst-ts-markup-rawspan-indicator-face
-      (blob) @typst-ts-markup-rawspan-blob-face
-      "`" @typst-ts-markup-rawspan-indicator-face)
-     (raw_blck
-      "```" @typst-ts-markup-rawblock-indicator-face
-      (ident) :? @typst-ts-markup-rawblock-lang-face
-      ;; NOTE let embedded language fontify blob
-      ,@(if typst-ts-mode-enable-raw-blocks-highlight
-            '((blob))
-          '((blob) @typst-ts-markup-rawblock-blob-face))
-      "```" @typst-ts-markup-rawblock-indicator-face)
-     (label) @typst-ts-markup-label-face ;; TODO more precise highlight (upstream)
-     (ref) @typst-ts-markup-reference-face)
+      :language typst
+      :feature markup-basic
+      ,(if typst-ts-mode-font-lock-rules-markup-basic
+           typst-ts-mode-font-lock-rules-markup-basic
+         markup-basic)
 
-    :language typst
-    :feature markup-standard
-    ((linebreak) @typst-ts-markup-linebreak-face
-     (quote) @typst-ts-markup-quote-face)
+      :language typst
+      :feature markup-standard
+      ,(if typst-ts-mode-font-lock-rules-markup-standard
+           typst-ts-mode-font-lock-rules-markup-standard
+         '((linebreak) @typst-ts-markup-linebreak-face
+           (quote) @typst-ts-markup-quote-face))
 
-    :language typst
-    :feature markup-extended
-    ((url) @typst-ts-markup-url-face)
+      :language typst
+      :feature markup-extended
+      ,(if typst-ts-mode-font-lock-rules-markup-extended
+           typst-ts-mode-font-lock-rules-markup-extended
+         '((url) @typst-ts-markup-url-face))
 
+      ;; please note that some feature there also in the math mode
+      :language typst
+      :feature code-basic
+      ,(if typst-ts-mode-font-lock-rules-code-basic
+           typst-ts-mode-font-lock-rules-code-basic
+         '("#" @typst-ts-code-indicator-face
+           ;; "end" @typst-ts-code-indicator-face ;; "end" is nothing but only a indicator
+           (string) @font-lock-string-face
+           (bool) @font-lock-constant-face
+           (none) @font-lock-constant-face
+           (auto) @font-lock-constant-face
 
-    ;; please note that some feature there also in the math mode
-    :language typst
-    :feature code-basic
-    ("#" @typst-ts-code-indicator-face
-     ;; "end" @typst-ts-code-indicator-face ;; "end" is nothing but only a indicator
-     (string) @font-lock-string-face
-     (bool) @font-lock-constant-face
-     (none) @font-lock-constant-face
-     (auto) @font-lock-constant-face
+           (in ["in" "not"] @font-lock-keyword-face)
+           (and "and" @font-lock-keyword-face)
+           (or "or" @font-lock-keyword-face)
+           (not "not" @font-lock-keyword-face)
+           (let "let" @font-lock-keyword-face)
+           (branch ["if" "else"] @font-lock-keyword-face)
+           (while "while" @font-lock-keyword-face)
+           (for ["for" "in"] @font-lock-keyword-face)
+           (import "import" @font-lock-keyword-face)
+           (as "as" @font-lock-keyword-face)
+           (include "include" @font-lock-keyword-face)
+           (show "show" @font-lock-keyword-face)
+           (set "set" @font-lock-keyword-face)
+           (return "return" @font-lock-keyword-face)
+           (flow ["break" "continue"] @font-lock-keyword-face)
 
-     (in ["in" "not"] @font-lock-keyword-face)
-     (and "and" @font-lock-keyword-face)
-     (or "or" @font-lock-keyword-face)
-     (not "not" @font-lock-keyword-face)
-     (let "let" @font-lock-keyword-face)
-     (branch ["if" "else"] @font-lock-keyword-face)
-     (while "while" @font-lock-keyword-face)
-     (for ["for" "in"] @font-lock-keyword-face)
-     (import "import" @font-lock-keyword-face)
-     (as "as" @font-lock-keyword-face)
-     (include "include" @font-lock-keyword-face)
-     (show "show" @font-lock-keyword-face)
-     (set "set" @font-lock-keyword-face)
-     (return "return" @font-lock-keyword-face)
-     (flow ["break" "continue"] @font-lock-keyword-face)
+           (call ;; function
+            item: (ident) @font-lock-function-call-face)
+           (call ;; method
+            item: (field field: (ident) @font-lock-function-call-face))
+           (tagged field: (ident) @font-lock-variable-name-face)
+           (field field: (ident) @font-lock-constant-face)))
 
-     (call ;; function
-      item: (ident) @font-lock-function-call-face)
-     (call ;; method
-      item: (field field: (ident) @font-lock-function-call-face))
-     (tagged field: (ident) @font-lock-variable-name-face)
-     (field field: (ident) @font-lock-constant-face))
+      :language typst
+      :feature code-standard
+      ,(if typst-ts-mode-font-lock-rules-code-standard
+           typst-ts-mode-font-lock-rules-code-standard
+         '((ident) @font-lock-variable-use-face
+           (builtin) @font-lock-builtin-face))
 
-    :language typst
-    :feature code-standard
-    ((ident) @font-lock-variable-use-face
-     (builtin) @font-lock-builtin-face)
+      :language typst
+      :feature code-extended
+      ,(if typst-ts-mode-font-lock-rules-code-extended
+           typst-ts-mode-font-lock-rules-code-extended
+         ;; TODO lambda symbol
+         '((number) @font-lock-number-face
 
-    :language typst
-    :feature code-extended ;; TODO lambda symbol
-    ((number) @font-lock-number-face
+           (content ["[" "]"] @font-lock-punctuation-face)
+           (sign ["+" "-"] @font-lock-operator-face)
+           (add "+" @font-lock-operator-face)
+           (sub "-" @font-lock-operator-face)
+           (mul "*" @font-lock-operator-face)
+           (div "/" @font-lock-operator-face)
+           (cmp ["==" "<=" ">=" "!=" "<" ">"] @font-lock-operator-face)
+           (wildcard) @font-lock-operator-face
 
-     (content ["[" "]"] @font-lock-punctuation-face)
-     (sign ["+" "-"] @font-lock-operator-face)
-     (add "+" @font-lock-operator-face)
-     (sub "-" @font-lock-operator-face)
-     (mul "*" @font-lock-operator-face)
-     (div "/" @font-lock-operator-face)
-     (cmp ["==" "<=" ">=" "!=" "<" ">"] @font-lock-operator-face)
-     (wildcard) @font-lock-operator-face
+           ["(" ")" "{" "}"] @font-lock-punctuation-face
+           ["," ";" ".." ":" "sep"] @font-lock-punctuation-face
+           "assign" @font-lock-punctuation-face
+           (field "." @font-lock-punctuation-face)))
 
-     ["(" ")" "{" "}"] @font-lock-punctuation-face
-     ["," ";" ".." ":" "sep"] @font-lock-punctuation-face
-     "assign" @font-lock-punctuation-face
-     (field "." @font-lock-punctuation-face))
+      :language typst
+      :feature math-basic
+      ,(if typst-ts-mode-font-lock-rules-math-basic
+           typst-ts-mode-font-lock-rules-math-basic
+         '((math "$" @typst-ts-math-indicator-face)))
 
-    :language typst
-    :feature math-basic
-    ((math "$" @typst-ts-math-indicator-face))
+      :language typst
+      :feature math-standard
+      ,(if typst-ts-mode-font-lock-rules-math-standard
+           typst-ts-mode-font-lock-rules-math-standard
+         '((symbol) @font-lock-constant-face
+           (letter) @font-lock-constant-face))
 
-    :language typst
-    :feature math-standard
-    ((symbol) @font-lock-constant-face
-     (letter) @font-lock-constant-face)
-
-    :language typst
-    :feature math-extended
-    ((fraction "/" @font-lock-operator-face)
-     (fac "!" @font-lock-operator-face)
-     (attach ["^" "_"] @font-lock-operator-face)
-     (align) @font-lock-operator-face)))
+      :language typst
+      :feature math-extended
+      ,(if typst-ts-mode-font-lock-rules-math-extended
+           typst-ts-mode-font-lock-rules-math-extended
+         '((fraction "/" @font-lock-operator-face)
+           (fac "!" @font-lock-operator-face)
+           (attach ["^" "_"] @font-lock-operator-face)
+           (align) @font-lock-operator-face)))))
 
 (defconst typst-ts-mode-font-lock-feature-list
   '((comment common)
@@ -1126,7 +1269,6 @@ See `treesit-language-at-point-function'."
                          (?\$ . ?\$)))
 
   ;; Font Lock
-  (setq-local treesit-font-lock-level 4)
   (setq-local treesit-font-lock-settings
               (apply #'treesit-font-lock-rules (if typst-ts-mode-font-lock-rules
                                                    typst-ts-mode-font-lock-rules
