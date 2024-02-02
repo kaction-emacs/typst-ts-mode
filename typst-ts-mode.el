@@ -46,7 +46,7 @@
   :prefix "typst-ts-faces"
   :group 'typst-ts)
 
-(defcustom typst-ts-mode-indent-offset 4
+(defcustom typst-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `typst-ts-mode'."
   :type 'integer
   :group 'typst-ts)
@@ -803,20 +803,25 @@ work well.  Example:
      ((and (node-is ")") (parent-is "group")) parent-bol 0)
      ((and (node-is "}") (parent-is "block")) parent-bol 0)
      ((and (node-is "]") (parent-is "content")) parent-bol 0)
-
      ((and (node-is "item") (parent-is "item")) parent-bol typst-ts-mode-indent-offset)
-
      ((parent-is "block") parent-bol typst-ts-mode-indent-offset)
      ((parent-is "content") parent-bol typst-ts-mode-indent-offset)
      ((parent-is "group") parent-bol typst-ts-mode-indent-offset)
-
      ;; don't indent raw block
      ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
       no-indent 0)
 
      ;; previous line is item type and the ending is a linebreak
-     ((and no-node typst-ts-mode--identation-item-linebreak)
-      typst-ts-mode--indentation-item-linebreak-get-pos typst-ts-mode-indent-offset)
+     ((lambda (node parent &rest _)
+	(unless node
+	  (save-excursion
+	    (forward-line -1)
+	    (back-to-indentation)
+	    (string= "item" (treesit-node-type
+			     (treesit-node-parent
+			      (treesit-node-at (point))))))))
+      prev-line
+      0)
 
      ((and no-node
            ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
@@ -826,11 +831,10 @@ work well.  Example:
      ;; ((lambda (node parent bol)
      ;;    (message "%s %s %s" node parent bol)
      ;;    nil) parent-bol 0)
-
+     
      ((and no-node
            (parent-is "source_file"))
       prev-line 0)
-     
      (no-node parent-bol 0)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
