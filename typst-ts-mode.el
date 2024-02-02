@@ -978,6 +978,54 @@ the `GLOBAL-MAP' (example: `right-word')."
            typst-ts-mode-compile-options)
    'typst-ts-compilation-mode))
 
+;; M-RET ================================================================================
+
+(defun typst-ts-mode-meta-return (&optional arg)
+  "Depending on context, insert a heading or insert an item.
+The new heading is created after the ending of current heading.
+Using ARG argument will ignore the context and it will insert a heading instead.
+
+This only works for syntax on https://typst.app/docs/reference/syntax/."
+  (interactive "P")
+  ;; move to end of line then one left because for some reason end of line is the next node
+  (let ((node (treesit-node-parent
+	       (treesit-node-at
+		(1- (pos-eol))))))
+    (cond
+     (arg (typst-ts-mode-insert--heading node))
+     ((string= (treesit-node-type node) "item")
+      (typst-ts-mode-insert--item node))
+     (t
+      (typst-ts-mode-insert--heading node)))))
+
+(defun typst-ts-mode-insert--item (node)
+  "Insert an item after NODE.
+NODE must be an item node!
+This function respects indentation."
+  (let (;; + or -
+	(item-type (treesit-node-text
+		    (treesit-node-child node 0)))
+	(item-end (treesit-node-end node)))
+    (goto-char item-end)
+    (newline-and-indent)
+    (insert item-type " ")))
+
+(defun typst-ts-mode-insert--heading (node)
+  "Insert a heading after the section that NODE is part of."
+  (let* ((section
+	  (treesit-parent-until
+	   node
+	   (lambda (node)
+	     (string= (treesit-node-type node) "section"))
+	   t))
+	 ;; first child is heading
+	 (heading (treesit-node-child section 0))
+	 (heading-level (treesit-node-type (treesit-node-child heading 0))))
+    (goto-char (treesit-node-end section))
+    (insert heading-level " ")
+    (save-excursion
+      (newline))))
+
 ;;;###autoload
 (defun typst-ts-mode-preview (file)
   "Open the result compile file.
@@ -1195,6 +1243,7 @@ TODO lack of documentation."
     (define-key map (kbd "M-<right>") #'typst-ts-mode-heading-increase)
     (define-key map (kbd "M-<down>") #'typst-ts-mode-heading-down)
     (define-key map (kbd "M-<up>") #'typst-ts-mode-heading-up)
+    (define-key map (kbd "M-<return>") #'typst-ts-mode-meta-return)
     (define-key map (kbd "TAB") #'typst-ts-mode-cycle)
     map))
 
