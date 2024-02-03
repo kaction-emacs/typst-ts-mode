@@ -51,6 +51,13 @@
   :type 'integer
   :group 'typst-ts)
 
+
+(defcustom typst-ts-mode-indent-offset-section 2
+  "The indent offset for section.
+i.e. The a indentation offset after each header."
+  :type 'boolean
+  :group 'typst-ts)
+
 (defcustom typst-ts-mode-fontification-precision-level 'middle
   "Whether to use precise face fontification.
 Note that precise face fontification will case performance degrading.
@@ -91,14 +98,23 @@ The compile options will be passed to the end of
   :type 'boolean
   :group 'typst-ts)
 
-(defvar typst-ts-mode-before-compile-hook nil
-  "Hook runs after compile.")
+(defcustom typst-ts-mode-before-compile-hook nil
+  "Hook runs after compile."
+  :type 'hook
+  :group 'typst-ts)
 
-(defvar typst-ts-mode-after-compile-hook nil
+(defcustom typst-ts-mode-after-compile-hook nil
   "Hook runs after compile.
 Note the requirement of this hook is the same as `compilation-finish-functions'.
 Also note that this hook runs with typst buffer(the buffer you are editing) as
-the current buffer.")
+the current buffer."
+  :type 'hook
+  :group 'typst-ts)
+
+(defcustom typst-ts-mode-tab-function 'indent-for-tab-command
+  "Default function for `typst-ts-mode-cycle' when conditions don't match."
+  :type 'function
+  :group 'typst-ts)
 
 (defcustom typst-ts-mode-watch-options ""
   "User defined compile options for `typst-ts-mode-watch'.
@@ -709,8 +725,8 @@ If you want to customize the rules, please customize the same name variable
     (markup-standard code-standard math-standard)
     (markup-extended code-extended math-extended)))
 
-(defconst typst-ts-mode--bracket-node-types
-  '("block" "content" "group")
+(defconst typst-ts-mode--container-node-types
+  '("block" "content" "group" "math")
   "Bracket node types.")
 
 (defun typst-ts-mode--node-inside-brackets (parent)
@@ -719,8 +735,15 @@ Return nil if the node is not inside brackets."
   (treesit-parent-until
    parent
    (lambda (parent)
-     (member (treesit-node-type parent) typst-ts-mode--bracket-node-types))
+     (member (treesit-node-type parent) typst-ts-mode--container-node-types))
    t))
+
+(defun typst-ts-mode--get-node-bol (node)
+  "Get the NODE's indentation offset (at node beginning)."
+  (save-excursion
+    (goto-char (treesit-node-start node))
+    (back-to-indentation)
+    (point)))
 
 (defun typst-ts-mode--ancestor-in (types &optional return-bol)
   "Return a function to check whether one of the ancestors of a node is in TYPES.
@@ -739,12 +762,8 @@ corresponding ancestor node.  Return nil if ancestor not matching."
                         (member (treesit-node-type parent) types))
                       t)))
       (if return-bol
-          (if ancestor
-              (save-excursion
-                (goto-char (treesit-node-start ancestor))
-                (back-to-indentation)
-                (point))
-            nil)
+          (when ancestor
+            (typst-ts-mode--get-node-bol ancestor))
         ancestor))))
 
 (defun typst-ts-mode--ancestor-bol (types)
@@ -761,8 +780,8 @@ See `treesit-simple-indent-rules'."
                                    (goto-char bol)
                                    (skip-chars-backward " \r\n\t")
                                    (1- (point))))
-              ((and (not (eq prev-nonwhite-pos 0)) ;; first line
-                    (not (eq
+              ((and (not (eq prev-nonwhite-pos 0))  ; first line
+                    (not (eq  ; has previous sibling
                           (line-number-at-pos prev-nonwhite-pos)
                           (line-number-at-pos (point))))))
               (prev-nonwhite-line-node
@@ -796,9 +815,23 @@ work well.  Example:
     (back-to-indentation)
     (point)))
 
+(defun typst-ts-mode--indentation-in-section-content (node parent bol)
+  "Detect whether current node is inside section > content.
+NODE, PARENT, BOL see info node `(elisp) Parser-based Indentation'.
+If match, return the bol of the content node."
+  (when-let ((container-node
+              (funcall (typst-ts-mode--ancestor-in typst-ts-mode--container-node-types)
+                       node parent bol)))
+    (when (and
+           (string= "content" (treesit-node-type container-node))
+           (string= "section" (treesit-node-type (treesit-node-parent container-node))))
+      (typst-ts-mode--get-node-bol container-node))))
+
 (defvar typst-ts-mode--indent-rules
-  ;; you can set `treesit--indent-verbose' variable to t to see which indentation
-  ;; rule matches.
+  ;; debug tips:
+  ;; 1. `toggle-debug-on-error' to make sure you indentation code error report
+  ;; 2. enable `treesit--indent-verbose' to see what indentation rule matches
+  ;; 3. `treesit-inspect-mode' or `treesit-inspect-node-at-point'
   `((typst
      ((and (node-is ")") (parent-is "group")) parent-bol 0)
      ((and (node-is "}") (parent-is "block")) parent-bol 0)
@@ -806,21 +839,46 @@ work well.  Example:
 
      ((and (node-is "item") (parent-is "item")) parent-bol typst-ts-mode-indent-offset)
 
+     ((n-p-gp nil "content" "section")
+      parent-bol typst-ts-mode-indent-offset-section)
+
      ((parent-is "block") parent-bol typst-ts-mode-indent-offset)
      ((parent-is "content") parent-bol typst-ts-mode-indent-offset)
      ((parent-is "group") parent-bol typst-ts-mode-indent-offset)
+
+     ((lambda (node parent bol)
+        (message "%s %s %s" node parent bol)
+        nil) parent-bol 0)
+
+     ((n-p-gp "$" "math" nil) parent-bol typst-ts-mode-indent-offset)
 
      ;; don't indent raw block
      ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
       no-indent 0)
 
-     ;; previous line is item type and the ending is a linebreak
-     ((and no-node typst-ts-mode--identation-item-linebreak)
+     ;; previous nonwhite line is item type and the ending is a linebreak
+     (typst-ts-mode--identation-item-linebreak
       typst-ts-mode--indentation-item-linebreak-get-pos typst-ts-mode-indent-offset)
 
+     ;; item should follow its previous line item's indentation level
+     ((lambda (node parent &rest _)
+        (unless node
+          (save-excursion
+            (forward-line -1)
+            (back-to-indentation)
+            (string= "item" (treesit-node-type
+                             (treesit-node-parent
+                              (treesit-node-at (point))))))))
+      prev-line
+      0)
+
+     ((and no-node typst-ts-mode--indentation-in-section-content)
+      typst-ts-mode--indentation-in-section-content
+      typst-ts-mode-indent-offset-section)
+
      ((and no-node
-           ,(typst-ts-mode--ancestor-in typst-ts-mode--bracket-node-types))
-      ,(typst-ts-mode--ancestor-bol typst-ts-mode--bracket-node-types)
+           ,(typst-ts-mode--ancestor-in typst-ts-mode--container-node-types))
+      ,(typst-ts-mode--ancestor-bol typst-ts-mode--container-node-types)
       typst-ts-mode-indent-offset)
 
      ;; ((lambda (node parent bol)
@@ -830,8 +888,11 @@ work well.  Example:
      ((and no-node
            (parent-is "source_file"))
       prev-line 0)
-     
-     (no-node parent-bol 0)))
+
+     (no-node parent-bol 0)
+
+     ;; example: (item (text) (text) (text)) when `(text)' is in different line
+     (catch-all prev-line 0)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
 (defun typst-ts-mode-comment-setup()
@@ -1121,64 +1182,75 @@ PROC: process; OUTPUT: new output from PROC."
 ;;;###autoload
 (defun typst-ts-mode-cycle (&optional arg)
   "Cycle.
+Customize `typst-ts-mode-tab-function' for default tab function when no
+condition matches.
 ARG.
 TODO lack of documentation."
   (interactive "P")
-  (when-let* ((cur-pos (point))
-              (cur-node (treesit-node-at cur-pos))
-              (cur-node-type (treesit-node-type cur-node))
-              (parent-node (treesit-node-parent cur-node))  ; could be nil
-              (parent-node-type (treesit-node-type parent-node)))
-    (cond
-     ((or (equal cur-node-type "parbreak")
-          (eobp))
-      (when-let* ((cur-line-bol
-                   (save-excursion
-                     (back-to-indentation)
-                     (point)))
-                  (prev-nonwhite-pos (save-excursion
-                                       (goto-char cur-line-bol)
-                                       (skip-chars-backward " \r\n\t")
-                                       (1- (point))))
-                  ((and (not (eq prev-nonwhite-pos 0)) ;; first line
-                        (not (eq
-                              (line-number-at-pos prev-nonwhite-pos)
-                              (line-number-at-pos (point))))))
-                  (prev-nonwhite-line-node
-                   (treesit-node-at prev-nonwhite-pos))
-                  (prev-nonwhite-line-bol
-                   (save-excursion
-                     (goto-char prev-nonwhite-pos)
-                     (back-to-indentation)
-                     (point)))
-                  (prev-nonwhite-line-heading-node
-                   (treesit-node-at prev-nonwhite-line-bol))
-                  (prev-nonwhite-line-top-node (treesit-node-parent
-                                                prev-nonwhite-line-heading-node))
-                  (cur-line-bol-column (typst-ts-mode-column-at-pos cur-line-bol))
-                  (prev-nonwhite-line-bol-column
-                   (typst-ts-mode-column-at-pos prev-nonwhite-line-bol)))
-        (cond
-         ;; 1. el
-         ;; 2. psy| <- can toggle indent
-         ((and
-           (equal (treesit-node-type prev-nonwhite-line-top-node) "item")
-           (equal (treesit-node-type prev-nonwhite-line-heading-node) "-")
-           (not (equal (treesit-node-type prev-nonwhite-line-node) "linebreak")))
-          (let (point)
-            (if (not (eq cur-line-bol-column prev-nonwhite-line-bol-column))
-                (progn
-                  (setq point (point))
-                  (indent-line-to prev-nonwhite-line-bol-column)
-                  (goto-char (- point typst-ts-mode-indent-offset)))
-              (setq point (point))
-              (indent-line-to (+ typst-ts-mode-indent-offset
-                                 prev-nonwhite-line-bol-column))
-              (goto-char (+ typst-ts-mode-indent-offset point)))))
-         )))
-     (t
-      (indent-for-tab-command))
-     )))
+  (let (execute-result)
+    (setq
+     execute-result
+     (catch 'execute-result
+       (when-let* ((cur-pos (point))
+                   (cur-node (treesit-node-at cur-pos))
+                   (cur-node-type (treesit-node-type cur-node))
+                   (parent-node (treesit-node-parent cur-node))  ; could be nil
+                   (parent-node-type (treesit-node-type parent-node)))
+         (cond
+          ((or (equal cur-node-type "parbreak")
+               (equal parent-node-type "item")
+               (eobp))
+           (when-let* ((cur-line-bol
+                        (save-excursion
+                          (back-to-indentation)
+                          (point)))
+                       (prev-nonwhite-pos (save-excursion
+                                            (goto-char cur-line-bol)
+                                            (skip-chars-backward " \r\n\t")
+                                            (1- (point))))
+                       ((and (not (eq prev-nonwhite-pos 0))  ; first line
+                             (not (eq  ; has previous sibling
+                                   (line-number-at-pos prev-nonwhite-pos)
+                                   (line-number-at-pos (point))))))
+                       (prev-nonwhite-line-node
+                        (treesit-node-at prev-nonwhite-pos))
+                       (prev-nonwhite-line-bol
+                        (save-excursion
+                          (goto-char prev-nonwhite-pos)
+                          (back-to-indentation)
+                          (point)))
+                       (prev-nonwhite-line-heading-node
+                        (treesit-node-at prev-nonwhite-line-bol))
+                       (prev-nonwhite-line-top-node (treesit-node-parent
+                                                     prev-nonwhite-line-heading-node))
+                       (cur-line-bol-column (typst-ts-mode-column-at-pos cur-line-bol))
+                       (prev-nonwhite-line-bol-column
+                        (typst-ts-mode-column-at-pos prev-nonwhite-line-bol)))
+             (cond
+              ;; 1. el
+              ;; 2. psy| <- can toggle indent
+              ((and
+                (equal (treesit-node-type prev-nonwhite-line-top-node) "item")
+                (equal (treesit-node-type prev-nonwhite-line-heading-node) "-")
+                ;; previous nonwhite-line ending is not '\' character
+                (not (equal (treesit-node-type prev-nonwhite-line-node) "linebreak")))
+               (let (point)
+                 (if (not (eq cur-line-bol-column prev-nonwhite-line-bol-column))
+                     (progn
+                       (setq point (point))
+                       (indent-line-to prev-nonwhite-line-bol-column)
+                       (goto-char (- point typst-ts-mode-indent-offset)))
+                   (setq point (point))
+                   (indent-line-to (+ typst-ts-mode-indent-offset
+                                      prev-nonwhite-line-bol-column))
+                   (goto-char (+ typst-ts-mode-indent-offset point)))
+                 (throw 'execute-result 'success))))))
+          (t nil)))))
+    ;; execute default action
+    (unless (eq execute-result 'success)
+      (if (commandp typst-ts-mode-tab-function)
+          (call-interactively typst-ts-mode-tab-function)
+        (funcall typst-ts-mode-tab-function)))))
 
 ;;;###autoload
 (defvar typst-ts-mode-map
