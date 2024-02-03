@@ -1002,13 +1002,17 @@ This only works for syntax on https://typst.app/docs/reference/syntax/."
   "Insert an item after NODE.
 NODE must be an item node!
 This function respects indentation."
-  (let (;; + or -
-	(item-type (treesit-node-text
-		    (treesit-node-child node 0)))
-	(item-end (treesit-node-end node)))
+  (let* (;; +, -, or <num>.
+	 (item-type (treesit-node-text
+	             (treesit-node-child node 0)))
+         (item-number (string-to-number item-type))
+         (item-end (treesit-node-end node)))
     (goto-char item-end)
     (newline-and-indent)
-    (insert item-type " ")))
+    (insert (if (= item-number 0)
+                item-type
+              (concat (number-to-string (1+ item-number)) "."))
+            " ")))
 
 (defun typst-ts-mode-insert--heading (node)
   "Insert a heading after the section that NODE is part of."
