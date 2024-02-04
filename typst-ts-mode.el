@@ -992,27 +992,60 @@ the `GLOBAL-MAP' (example: `right-word')."
 
 ;; RETURN ================================================================================
 
+(defun typst-ts-mode--item-on-line-p ()
+  "Does the current line have an item node?
+Return the node when yes otherwise
+return the node that is one character left from the end of line."
+  (treesit-node-parent
+   (treesit-node-at
+    (save-excursion
+      ;; starting from the beginning because line could be 1. wow.
+      (beginning-of-line)
+      (condition-case nil
+          (progn
+            (search-forward-regexp (rx (or "+" "-" "."))
+                                   (pos-eol)
+                                   nil
+                                   nil)
+            (left-char))
+        (search-failed
+         ;; need to go to the end of line and then one left because end of line is the next node
+         (goto-char (1- (pos-eol)))))
+      (point)))))
+
 (defun typst-ts-mode-meta-return (&optional arg)
   "Depending on context, insert a heading or insert an item.
 The new heading is created after the ending of current heading.
 Using ARG argument will ignore the context and it will insert a heading instead."
   (interactive "P")
-  (let ((node (treesit-node-parent
-	       (treesit-node-at
-		(save-excursion
-                  (beginning-of-line)
-                  (search-forward-regexp (rx (or "+" "-" "."))
-                                         (pos-eol)
-                                         t
-                                         nil)
-                  (left-char)
-                  (point))))))
+  (let ((node (typst-ts-mode--item-on-line-p)))
     (cond
-     (arg (typst-ts-mode-insert--heading node))
+     (arg (typst-ts-mode-insert--heading nil))
      ((string= (treesit-node-type node) "item")
       (typst-ts-mode-insert--item node))
      (t
       (typst-ts-mode-insert--heading node)))))
+
+(defun typst-ts-mode-return (&optional arg interactive)
+  "Do something smart when `typst-ts-mode-return-smart' is non nil.
+Pressing enter will do something depending on context.
+ARG and INTERACTIVE will be passed to `newline'.
+INTERACTIVE will be non nil when called interactively.
+`typst-ts-mode-return-smart' for more documentation."
+  (interactive "*P\np")
+  (if (or arg (not typst-ts-mode-return-smart))
+      (newline (if arg arg 1) interactive)
+    (let ((node (typst-ts-mode--item-on-line-p)))
+      (cond
+       ((string= (treesit-node-type node) "item")
+        ;; does the item have text?
+        (if (> (treesit-node-child-count node) 1)
+            (typst-ts-mode-insert--item node)
+          ;; no text means delete the item on current line
+          (beginning-of-line)
+          (kill-line)
+          (indent-according-to-mode)))
+       (t (newline (if arg arg 1) interactive))))))
 
 (defun typst-ts-mode-insert--item (node)
   "Insert an item after NODE.
@@ -1032,7 +1065,7 @@ This function respects indentation."
 
 (defun typst-ts-mode-insert--heading (node)
   "Insert a heading after the section that NODE is part of.
-When there is no section it will insert a heading after current point."
+When there is no section it will insert a heading below point."
   (let* ((section
 	  (treesit-parent-until
 	   node
@@ -1044,14 +1077,16 @@ When there is no section it will insert a heading after current point."
 	 (heading-level (treesit-node-type (treesit-node-child heading 0))))
     (if section
         (goto-char (treesit-node-end section))
+      ;; no headings so far
       (setq heading-level "=")
-      (end-of-line)
       (forward-line 1))
+    ;; something can be in the next line/section, the heading needs be on its own line
+    ;; this has to be done after `goto-char' because it will invalidate the node
+    (newline)
+    (forward-line -1)
+    ;; insert the heading and indent
     (insert heading-level " ")
-    (indent-according-to-mode)
-    ;; something can be below the end of section
-    (save-excursion
-      (newline))))
+    (indent-according-to-mode)))
 
 ;;;###autoload
 (defun typst-ts-mode-preview (file)
@@ -1271,6 +1306,7 @@ TODO lack of documentation."
     (define-key map (kbd "M-<down>") #'typst-ts-mode-heading-down)
     (define-key map (kbd "M-<up>") #'typst-ts-mode-heading-up)
     (define-key map (kbd "M-<return>") #'typst-ts-mode-meta-return)
+    (define-key map (kbd "<return>") #'typst-ts-mode-return)
     (define-key map (kbd "TAB") #'typst-ts-mode-cycle)
     map))
 
