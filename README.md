@@ -6,7 +6,7 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 
 [Discussion on Zulip](https://meow-place.zulipchat.com/)  
 [Tickets](https://todo.sr.ht/~meow_king/typst-ts-mode): Issues, feature requests, etc.  
-[Announce](https://lists.sr.ht/~meow_king/typst-ts-mode-announce) Announcements. Subscribe to it to receive the latest news for `typst-ts-mode`.
+[Announce](https://lists.sr.ht/~meow_king/typst-ts-mode-announce) Announcements. Subscribe to it to receive the latest news for `typst-ts-mode`.  
 [Send a Patch](https://lists.sr.ht/~meow_king/typst-ts-mode-dev)  
 
 ## Requirement
