@@ -83,6 +83,8 @@ For reference, this is my configuration.
 `M-<up>`    : `typst-ts-mode-heading-up`  
 `M-<down>`  : `typst-ts-mode-heading-down`  
 `TAB`       : `typst-ts-mode-cycle`  
+`M-<return>`: `typst-ts-mode-meta-return`  
+`<return>`  : `typst-ts-mode-return`  
 
 *NOTE*: `outline-minor-mode` is enabled by `typst-ts-mode`, so you can use comamnd 
 defined by `outline-minor-mode` such as `outline-cycle`.
@@ -92,7 +94,7 @@ defined by `outline-minor-mode` such as `outline-cycle`.
 For customizable options: `customize` -> `typst-ts`.  
 
 Here are some options you may find useful:  
-1. `typst-ts-mode-indent-offset` (default 4)  
+1. `typst-ts-mode-indent-offset` (default 2)  
 2. `typst-ts-mode-executable-location`  
 3. `typst-ts-mode-watch-options`.  
    Set this to `--open` so typst will open the compiled file for you.
@@ -108,6 +110,7 @@ Here are some options you may find useful:
    [auto-save](https://github.com/manateelazycat/auto-save) or 
    [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
 6. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`  
+7. `typst-ts-mode-return-autoincrement` autoincrement lists when pressing RETURN (default `t`).
 
 ### Fontification
 1. `typst-ts-mode-fontification-precise-level` (default `'middle`)  

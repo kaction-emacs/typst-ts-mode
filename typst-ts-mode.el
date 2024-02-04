@@ -154,11 +154,13 @@ level.  See `typst-ts-mode-fontification-precision-level'."
   :type 'boolean
   :group 'typst-ts-faces)
 
-(defcustom typst-ts-mode-return-smart t
-  "Whether return key should behave smart.
-Smart as in, automatically insert a new list item when point before
-pressing return was on an item.
-Pressing return again without inserting a value will remove the list item.
+(defcustom typst-ts-mode-return-autoincrement t
+  "Whether return key should autoincrement.
+Smart as in, when point is on an item with text,
+pressing return will insert a newline and then an item.
+
+When point is on an item without text pressing return it will remove the item.
+
 Example:
 + item RETURN
 + |< point is now here
@@ -1027,13 +1029,13 @@ Using ARG argument will ignore the context and it will insert a heading instead.
       (typst-ts-mode-insert--heading node)))))
 
 (defun typst-ts-mode-return (&optional arg interactive)
-  "Do something smart when `typst-ts-mode-return-smart' is non nil.
+  "Do something smart when `typst-ts-mode-return-autoincrement' is non nil.
 Pressing enter will do something depending on context.
 ARG and INTERACTIVE will be passed to `newline'.
 INTERACTIVE will be non nil when called interactively.
-`typst-ts-mode-return-smart' for more documentation."
+`typst-ts-mode-return-autoincrement' for more documentation."
   (interactive "*P\np")
-  (if (or arg (not typst-ts-mode-return-smart))
+  (if (or arg (not typst-ts-mode-return-autoincrement))
       (newline (if arg arg 1) interactive)
     (let ((node (typst-ts-mode--item-on-line-p)))
       (cond
