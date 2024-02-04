@@ -778,7 +778,7 @@ BOL: beginning of the current line.
 See `treesit-simple-indent-rules'."
   (when-let* ((prev-nonwhite-pos (save-excursion
                                    (goto-char bol)
-                                   (skip-chars-backward " \r\n\t")
+                                   (skip-chars-backward "\s\r\n\t")
                                    (1- (point))))
               ((and (not (eq prev-nonwhite-pos 0))  ; first line
                     (not (eq  ; has previous sibling
@@ -811,7 +811,7 @@ work well.  Example:
         | <- insert cursor should be here."
   (save-excursion
     (goto-char bol)
-    (skip-chars-backward " \r\n\t")
+    (skip-chars-backward "\s\r\n\t")
     (back-to-indentation)
     (point)))
 
@@ -829,6 +829,8 @@ If match, return the bol of the content node."
 
 (defvar typst-ts-mode--indent-rules
   ;; debug tips:
+  ;; use `typst-ts/util/setup-indent-debug-environment' function in `side/utils.el'
+  ;; it basically does these:
   ;; 1. `toggle-debug-on-error' to make sure you indentation code error report
   ;; 2. enable `treesit--indent-verbose' to see what indentation rule matches
   ;; 3. `treesit-inspect-mode' or `treesit-inspect-node-at-point'
@@ -846,15 +848,27 @@ If match, return the bol of the content node."
      ((parent-is "content") parent-bol typst-ts-mode-indent-offset)
      ((parent-is "group") parent-bol typst-ts-mode-indent-offset)
 
+     ;; ((n-p-gp "$" "math" nil) parent-bol typst-ts-mode-indent-offset)
+
+     (,(typst-ts-mode--ancestor-in '("ERROR")) no-indent 0)  ; 1
+
      ((lambda (node parent bol)
         (message "%s %s %s" node parent bol)
         nil) parent-bol 0)
 
-     ((n-p-gp "$" "math" nil) parent-bol typst-ts-mode-indent-offset)
-
-     ;; don't indent raw block
-     ((and no-node ,(typst-ts-mode--ancestor-in (list "raw_blck")))
-      no-indent 0)
+     ;; raw block (TODO add indent offset when `typst-ts-mode-highlight-raw-block' is enabled)
+     ((n-p-gp "```" "raw_blck" nil) parent-bol 0)
+     ((n-p-gp nil "blob" "raw_blck")
+      no-indent
+      ;; make sure the content indentation is at least as big as raw block header's
+      (lambda (_node parent bol)
+        (let* ((node-raw-blck (treesit-node-parent parent))
+               (raw-block-column (typst-ts-mode-column-at-pos
+                                  (typst-ts-mode--get-node-bol node-raw-blck)))
+               (bol-column (typst-ts-mode-column-at-pos bol)))
+          (if (< bol-column raw-block-column)
+              (- raw-block-column bol-column)
+            0))))
 
      ;; previous nonwhite line is item type and the ending is a linebreak
      (typst-ts-mode--identation-item-linebreak
@@ -881,12 +895,11 @@ If match, return the bol of the content node."
       ,(typst-ts-mode--ancestor-bol typst-ts-mode--container-node-types)
       typst-ts-mode-indent-offset)
 
-     ;; ((lambda (node parent bol)
-     ;;    (message "%s %s %s" node parent bol)
-     ;;    nil) parent-bol 0)
 
-     ((and no-node
-           (parent-is "source_file"))
+     ;; cop with <1>
+     ;; = Header 1
+     ;;   ```rust| <- return
+     ((and no-node (parent-is "source_file"))
       prev-line 0)
 
      (no-node parent-bol 0)
@@ -1197,6 +1210,10 @@ TODO lack of documentation."
                    (parent-node (treesit-node-parent cur-node))  ; could be nil
                    (parent-node-type (treesit-node-type parent-node)))
          (cond
+          ((equal parent-node-type "raw_blck")
+           (insert-tab)
+           (throw 'execute-result 'success))
+          
           ((or (equal cur-node-type "parbreak")
                (equal parent-node-type "item")
                (eobp))
@@ -1206,7 +1223,7 @@ TODO lack of documentation."
                           (point)))
                        (prev-nonwhite-pos (save-excursion
                                             (goto-char cur-line-bol)
-                                            (skip-chars-backward " \r\n\t")
+                                            (skip-chars-backward "\s\r\n\t")
                                             (1- (point))))
                        ((and (not (eq prev-nonwhite-pos 0))  ; first line
                              (not (eq  ; has previous sibling
@@ -1215,6 +1232,7 @@ TODO lack of documentation."
                        (prev-nonwhite-line-node
                         (treesit-node-at prev-nonwhite-pos))
                        (prev-nonwhite-line-bol
+                        ;; TODO typst-ts-mode--get-node-bol
                         (save-excursion
                           (goto-char prev-nonwhite-pos)
                           (back-to-indentation)
@@ -1234,6 +1252,7 @@ TODO lack of documentation."
                 (equal (treesit-node-type prev-nonwhite-line-heading-node) "-")
                 ;; previous nonwhite-line ending is not '\' character
                 (not (equal (treesit-node-type prev-nonwhite-line-node) "linebreak")))
+               ;; TODO cycle all its children
                (let (point)
                  (if (not (eq cur-line-bol-column prev-nonwhite-line-bol-column))
                      (progn
