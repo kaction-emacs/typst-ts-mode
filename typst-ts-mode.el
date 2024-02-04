@@ -838,9 +838,9 @@ If match, return the bol of the content node."
   ;; `typst-ts-mode-indent-line-function' is created for handling end of buffer
   ;;  edge cases
   `((typst
-     ((lambda (node parent bol)  ; NOTE
-        (message "%s %s %s" node parent bol)
-        nil) parent-bol 0)
+     ;; ((lambda (node parent bol)  ; NOTE
+     ;;    (message "%s %s %s" node parent bol)
+     ;;    nil) parent-bol 0)
 
      ((n-p-gp "section" "source_file" nil) column-0 0)  ; <2>
      
