@@ -978,19 +978,20 @@ the `GLOBAL-MAP' (example: `right-word')."
            typst-ts-mode-compile-options)
    'typst-ts-compilation-mode))
 
-;; M-RET ================================================================================
+;; RETURN ================================================================================
 
 (defun typst-ts-mode-meta-return (&optional arg)
   "Depending on context, insert a heading or insert an item.
 The new heading is created after the ending of current heading.
-Using ARG argument will ignore the context and it will insert a heading instead.
-
-This only works for syntax on https://typst.app/docs/reference/syntax/."
+Using ARG argument will ignore the context and it will insert a heading instead."
   (interactive "P")
-  ;; move to end of line then one left because for some reason end of line is the next node
   (let ((node (treesit-node-parent
 	       (treesit-node-at
-		(1- (pos-eol))))))
+		(save-excursion
+                  (beginning-of-line)
+                  (search-forward-regexp (rx (or "+" "-" ".")))
+                  (left-char)
+                  (point))))))
     (cond
      (arg (typst-ts-mode-insert--heading node))
      ((string= (treesit-node-type node) "item")
@@ -1015,7 +1016,8 @@ This function respects indentation."
             " ")))
 
 (defun typst-ts-mode-insert--heading (node)
-  "Insert a heading after the section that NODE is part of."
+  "Insert a heading after the section that NODE is part of.
+When there is no section it will insert a heading after current point."
   (let* ((section
 	  (treesit-parent-until
 	   node
@@ -1025,7 +1027,11 @@ This function respects indentation."
 	 ;; first child is heading
 	 (heading (treesit-node-child section 0))
 	 (heading-level (treesit-node-type (treesit-node-child heading 0))))
-    (goto-char (treesit-node-end section))
+    (if section
+        (goto-char (treesit-node-end section))
+      (setq heading-level "=")
+      (end-of-line)
+      (forward-line 1))
     (insert heading-level " ")
     (save-excursion
       (newline))))
