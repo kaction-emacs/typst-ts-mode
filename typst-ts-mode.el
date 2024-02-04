@@ -1136,13 +1136,23 @@ This function respects indentation."
 	 (item-type (treesit-node-text
 	             (treesit-node-child node 0)))
          (item-number (string-to-number item-type))
-         (item-end (treesit-node-end node)))
+         (item-end (treesit-node-end node))
+         ;; do the same indentation level in case I am pointing at a parent
+         (column (typst-ts-mode-column-at-pos
+                  (typst-ts-mode--get-node-bol node))))
     (goto-char item-end)
+    ;; I am not sure what happens when someone uses tab characters to indent
+    ;; that's why I will do it like that
     (newline-and-indent)
+    (move-to-column column)
+    (kill-line)
     (insert (if (= item-number 0)
                 item-type
               (concat (number-to-string (1+ item-number)) "."))
-            " ")))
+            " ")
+    ;; something can be below me
+    (save-excursion
+      (newline))))
 
 (defun typst-ts-mode-insert--heading (node)
   "Insert a heading after the section that NODE is part of.
