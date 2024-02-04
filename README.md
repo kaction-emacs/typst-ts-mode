@@ -5,7 +5,8 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 ![Static Badge](https://img.shields.io/badge/Made_with-Emacs-purple)
 
 [Discussion on Zulip](https://meow-place.zulipchat.com/)  
-[Tickets](https://todo.sr.ht/~meow_king/typst-ts-mode): issues, feature requests, etc.  
+[Tickets](https://todo.sr.ht/~meow_king/typst-ts-mode): Issues, feature requests, etc.  
+[Announce](https://lists.sr.ht/~meow_king/typst-ts-mode-announce) Announcements. Subscribe to it to receive the latest news for `typst-ts-mode`.  
 [Send a Patch](https://lists.sr.ht/~meow_king/typst-ts-mode-dev)  
 
 ## Requirement
@@ -16,7 +17,7 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 `typst 0.10.0 (70ca0d25)`
 
 3. Tree Sitter parser for Typst: https://github.com/uben0/tree-sitter-typst  
-commit: `c0765e3`
+commit: `2d68228e8af537fccd02b10c9b37b353238cfa5e - Feb 4, 2024`  
 
 Note this tree sitter parser is included in [tree sitter modules](https://github.com/casouri/tree-sitter-module), so you can use the build script 
 in it to get this parser.  
@@ -67,7 +68,10 @@ For reference, this is my configuration.
 (use-package typst-ts-mode
   :elpaca (:type git :host sourcehut :repo "meow_king/typst-ts-mode")
   :custom
+  ;; don't add "--open" if you'd like `watch` to be an error detector
   (typst-ts-mode-watch-options "--open")
+  
+  ;; experimental settings (I'm the main dev, so I enable these)
   (typst-ts-mode-enable-raw-blocks-highlight t)
   (typst-ts-mode-highlight-raw-blocks-at-startup t))
 ```
@@ -94,7 +98,8 @@ defined by `outline-minor-mode` such as `outline-cycle`.
 For customizable options: `customize` -> `typst-ts`.  
 
 Here are some options you may find useful:  
-1. `typst-ts-mode-indent-offset` (default 2)  
+1. `typst-ts-mode-indent-offset` (default 4) and `typst-ts-mode-indent-offset-section` (default 2)  
+   Set `typst-ts-mode-indent-offset-section` to 0 to make the structure flat.
 2. `typst-ts-mode-executable-location`  
 3. `typst-ts-mode-watch-options`.  
    Set this to `--open` so typst will open the compiled file for you.
@@ -127,6 +132,7 @@ Here are some options you may find useful:
    rules.
 
 ### Raw block highlighting
+_This is an experimental feature_  
 Only support tree-sitter languages.  
 For more detailed documentation about raw block highlighting see 
 [this documentation](./doc/raw-block-highlighing.md)  

@@ -19,10 +19,6 @@
 
 ;; Functionality to embed other languages in typst documentation.
 
-;; NOTE:
-;; Raw block 'typc' tag cannot work as expected in typst code mode, it works in
-;; typst markup mode
-
 ;;; Code:
 (require 'treesit)
 

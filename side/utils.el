@@ -24,6 +24,16 @@
 
 ;;; Code:
 
+(defun typst-ts/util/setup-indent-debug-environment ()
+  (interactive)
+  (setq debug-on-error t
+        treesit--indent-verbose t)
+  (treesit-explore-mode 1)
+  (treesit-inspect-mode 1)
+
+  ;; note that when in intensive testing, you'd better turn off `auto-save-visited-mode'
+  (whitespace-mode 1))
+
 (defun typst-ts/util/els/get-all-ts-major-modes ()
   "Get all tree sitter major modes from `treesit-auto'."
   (require 'treesit-auto)
