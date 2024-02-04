@@ -154,6 +154,18 @@ level.  See `typst-ts-mode-fontification-precision-level'."
   :type 'boolean
   :group 'typst-ts-faces)
 
+(defcustom typst-ts-mode-return-smart t
+  "Whether return key should behave smart.
+Smart as in, automatically insert a new list item when point before
+pressing return was on an item.
+Pressing return again without inserting a value will remove the list item.
+Example:
++ item RETURN
++ |< point is now here
+Pressing return again will remove the empty list item."
+  :type 'boolean
+  :group 'typst-ts)
+
 (defcustom typst-ts-markup-header-scale
   '(2.0 1.7 1.4 1.1 1.0 1.0)
   "Header Scale."
