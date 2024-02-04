@@ -1045,6 +1045,8 @@ When there is no section it will insert a heading after current point."
       (end-of-line)
       (forward-line 1))
     (insert heading-level " ")
+    (indent-according-to-mode)
+    ;; something can be below the end of section
     (save-excursion
       (newline))))
 
