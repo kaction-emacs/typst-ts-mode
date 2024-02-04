@@ -1001,7 +1001,10 @@ Using ARG argument will ignore the context and it will insert a heading instead.
 	       (treesit-node-at
 		(save-excursion
                   (beginning-of-line)
-                  (search-forward-regexp (rx (or "+" "-" ".")))
+                  (search-forward-regexp (rx (or "+" "-" "."))
+                                         (pos-eol)
+                                         t
+                                         nil)
                   (left-char)
                   (point))))))
     (cond
