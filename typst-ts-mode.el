@@ -510,6 +510,8 @@ BTW, if you want to enable/disable specific font lock feature, please change
   "See variable `typst-ts-mode-font-lock-rules'.")
 
 (defun typst-ts-mode-font-lock-rules ()
+  ;; use function `typst-ts/util/setup-fontification-debug-environment' in
+  ;; `side/utils.el' to setup test environment.
   "Generate font lock rules for `treesit-font-lock-rules'.
 If you want to customize the rules, please customize the same name variable
 `typst-ts-mode-font-lock-rules'."
@@ -1434,7 +1436,9 @@ See `treesit-language-at-point-function'."
            (gethash
             (downcase (treesit-node-text lang-node))
             typst-ts-els-tag-lang-map))))
-    (if lang lang 'typst)))
+    (if lang
+        (if (treesit-ready-p lang t) lang nil)
+      'typst)))
 
 (defun typst-ts-mode--treesit-range-rules (langs)
   ;; from vimscript-ts-mode.el

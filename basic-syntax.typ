@@ -17,7 +17,7 @@
   // raw block
   ```bash
 sudo rm -rf *
-```
+  ```
   <label> // label
   @reference // reference
 
