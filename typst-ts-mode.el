@@ -48,14 +48,14 @@
 
 (defcustom typst-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `typst-ts-mode'."
-  :type 'integer
+  :type 'natnum
   :group 'typst-ts)
 
 
 (defcustom typst-ts-mode-indent-offset-section 2
   "The indent offset for section.
 i.e. The indentation offset after header."
-  :type 'boolean
+  :type 'natnum
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-fontification-precision-level 'middle
@@ -1574,6 +1574,7 @@ nil and parbreak."
   (setq-local outline-heading-alist typst-ts-mode-outline-heading-alist)
   ;; Although without enabling `outline-minor-mode' also works, enabling it
   ;; provides outline ellipsis
+  ;; TODO test remove it or add it to after-hook
   (outline-minor-mode t)
   
   (treesit-major-mode-setup)
