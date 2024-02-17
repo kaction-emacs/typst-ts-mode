@@ -509,6 +509,23 @@ BTW, if you want to enable/disable specific font lock feature, please change
 (defvar typst-ts-mode-font-lock-rules-math-extended nil
   "See variable `typst-ts-mode-font-lock-rules'.")
 
+(defun typst-ts-mode-highlight-block-fn (node _override _start _end)
+  "A function used in `typst-ts-mode-font-lock-rules'.
+This function assign `typst-ts-markup-rawblock-blob-face' to those raw block
+whose language cannot be found or be loaded.
+NODE."
+  (let ((ns (treesit-node-start node))
+        (ne (treesit-node-end node))
+        (lang-node (treesit-node-prev-sibling node))
+        lang)
+    (if (not (equal (treesit-node-type lang-node) "ident"))
+        (put-text-property ns ne 'face 'typst-ts-markup-rawblock-blob-face)
+      (setq lang (gethash
+                  (downcase (treesit-node-text lang-node))
+                  typst-ts-els-tag-lang-map))
+      (unless (and lang (treesit-ready-p lang t))
+        (put-text-property ns ne 'face 'typst-ts-markup-rawblock-blob-face)))))
+
 (defun typst-ts-mode-font-lock-rules ()
   ;; use function `typst-ts/util/setup-fontification-debug-environment' in
   ;; `side/utils.el' to setup test environment.
@@ -528,7 +545,7 @@ If you want to customize the rules, please customize the same name variable
                     '((raw_blck
                        "```" @typst-ts-markup-rawblock-indicator-face
                        (ident) :? @typst-ts-markup-rawblock-lang-face
-                       (blob)
+                       (blob) @typst-ts-mode-highlight-block-fn
                        "```" @typst-ts-markup-rawblock-indicator-face))
                   '((raw_blck) @typst-ts-markup-rawblock-face))
               (label) @typst-ts-markup-label-face
@@ -554,7 +571,7 @@ If you want to customize the rules, please customize the same name variable
                (ident) :? @typst-ts-markup-rawblock-lang-face
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
-                     '((blob))
+                     '((blob) @typst-ts-mode-highlight-block-fn)
                    '((blob) @typst-ts-markup-rawblock-blob-face))
                "```" @typst-ts-markup-rawblock-indicator-face)
               (label) @typst-ts-markup-label-face
@@ -611,7 +628,7 @@ If you want to customize the rules, please customize the same name variable
                (ident) :? @typst-ts-markup-rawblock-lang-face
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
-                     '((blob))
+                     '((blob) @typst-ts-mode-highlight-block-fn)
                    '((blob) @typst-ts-markup-rawblock-blob-face))
                "```" @typst-ts-markup-rawblock-indicator-face)
               (label) @typst-ts-markup-label-face  ; TODO more precise highlight (upstream)
@@ -1431,8 +1448,9 @@ See `treesit-language-at-point-function'."
                      (parent-node (treesit-node-parent cur-node))
                      ((equal (treesit-node-type
                               (treesit-node-parent cur-node)) "raw_blck"))
-                     (lang-node  ; (indent)
-                      (treesit-node-prev-sibling cur-node)))
+                     (lang-node
+                      (treesit-node-prev-sibling cur-node))
+                     ((equal (treesit-node-type lang-node) "ident")))
            (gethash
             (downcase (treesit-node-text lang-node))
             typst-ts-els-tag-lang-map))))
