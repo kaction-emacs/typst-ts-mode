@@ -1145,39 +1145,29 @@ INTERACTIVE will be non nil when called interactively.
 NODE must be an item node!
 This function respects indentation."
   (let* (;; +, -, or <num>.
-	 (item-type (treesit-node-text
-	             (treesit-node-child node 0)))
+	       (item-type (treesit-node-text
+	                   (treesit-node-child node 0)))
          (item-number (string-to-number item-type))
-         (item-end (treesit-node-end node))
-         ;; do the same indentation level in case I am pointing at a parent
-         (column (typst-ts-mode-column-at-pos
-                  (typst-ts-mode--get-node-bol node))))
+         (item-end (treesit-node-end node)))
     (goto-char item-end)
-    ;; I am not sure what happens when someone uses tab characters to indent
-    ;; that's why I will do it like that
     (newline-and-indent)
-    (move-to-column column)
-    (kill-line)
     (insert (if (= item-number 0)
                 item-type
               (concat (number-to-string (1+ item-number)) "."))
-            " ")
-    ;; something can be below me
-    (save-excursion
-      (newline))))
+            " ")))
 
 (defun typst-ts-mode-insert--heading (node)
   "Insert a heading after the section that NODE is part of.
 When there is no section it will insert a heading below point."
   (let* ((section
-	  (treesit-parent-until
-	   node
-	   (lambda (node)
-	     (string= (treesit-node-type node) "section"))
-	   t))
-	 ;; first child is heading
-	 (heading (treesit-node-child section 0))
-	 (heading-level (treesit-node-type (treesit-node-child heading 0))))
+	        (treesit-parent-until
+	         node
+	         (lambda (node)
+	           (string= (treesit-node-type node) "section"))
+	         t))
+	       ;; first child is heading
+	       (heading (treesit-node-child section 0))
+	       (heading-level (treesit-node-type (treesit-node-child heading 0))))
     (if section
         (goto-char (treesit-node-end section))
       ;; no headings so far
