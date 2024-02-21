@@ -1569,7 +1569,7 @@ nil and parbreak."
     (setq-local outline-level #'typst-ts-mode-outline-level))
   ;; Although without enabling `outline-minor-mode' also works, enabling it
   ;; provides outline ellipsis
-  ;; TODO test remove it or add it to after-hook
+  ;; TODO add it to after-hook
   (outline-minor-mode t)
   
   (treesit-major-mode-setup)

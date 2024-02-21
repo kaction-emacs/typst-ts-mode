@@ -16,50 +16,17 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 2. Latest [Typst](https://github.com/typst/typst).  
 `typst 0.10.0 (70ca0d25)`
 
-3. Tree Sitter parser for Typst: https://github.com/uben0/tree-sitter-typst  
-commit: `2d68228e8af537fccd02b10c9b37b353238cfa5e - Feb 4, 2024`  
+3. Tree Sitter grammar for Typst: https://github.com/uben0/tree-sitter-typst  
+   commit: `3a6c81bb56082604f5e63834cb2f946beeda1e76 - Feb 7, 2024`  
+   To install the grammar, you can execute the following elisp code:  
 
-Note this tree sitter parser is included in [tree sitter modules](https://github.com/casouri/tree-sitter-module), so you can use the build script 
-in it to get this parser.  
-You can also use the following script to build the parser too, which is extracted 
-from `tree sitter modules`.  
-<details>
-  <summary>Click me</summary>
-  
-*Note*, you should change the extension of `libtree-sitter-typst.so` from `so` to `dylib`(Darwin) or 
-`dll`(Windows) to match your system specification.
+   ``` emacs-lisp
+   (add-to-list 'treesit-language-source-alist
+                '(typst "https://github.com/uben0/tree-sitter-typst"))
+   (treesit-install-language-grammar 'typst)
+   ```
 
-```shell
-git clone --depth=1 --single-branch -b master git@github.com:uben0/tree-sitter-typst.git
-
-cd tree-sitter-typst/src
-cc -fPIC -c -I. parser.c
-
-# Compile scanner.c.
-if test -f scanner.c
-then
-    cc -fPIC -c -I. scanner.c
-fi
-
-# Compile scanner.cc.
-if test -f scanner.cc
-then
-    c++ -fPIC -I. -c scanner.cc
-fi
-
-# Link.
-if test -f scanner.cc
-then
-    c++ -fPIC -shared *.o -o "libtree-sitter-typst.so"
-else
-    cc -fPIC -shared *.o -o "libtree-sitter-typst.so"
-fi
-```
-
-</details>
-
-
-After building, you can see that there is a file called `typst-sitter-typst.so`(`.so` may also be `.dylib` or `.dll` too). Then move this file to the tree sitter parser directory ( Evaluate expression `(info "(elisp) Language Grammar")` in Emacs to read the info manual of tree sitter language grammar. The infomation of where the tree sitter parsers should be put locates in the first few paragraph of this manual). After that, you can install this package. 
+    Note there are also [tree sitter modules](https://github.com/casouri/tree-sitter-module), [treesit-auto](https://github.com/renzmann/treesit-auto) and [treesit-langs](https://github.com/kiennq/treesit-langs) for you to easily manage your tree sitter modes and grammars.
 
 ## Installation
 
