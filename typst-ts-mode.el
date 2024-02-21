@@ -989,29 +989,22 @@ buffer before compilation."
 
 ;; outline-minor-mode ================================================================================
 
-(defconst typst-ts-mode-outline-regexp "=+ "
+(defconst typst-ts-mode-outline-regexp "^[[:space:]]*\\(=+\\) "
   "Regexp identifying Typst header.")
 
 (defun typst-ts-mode-outline-level ()
   "Return the level of the heading at point."
   (save-excursion
     (end-of-line)
-    (if (re-search-backward "^=+ " nil t)
-	(1- (- (match-end 0) (match-beginning 0)))
+    (if (re-search-backward typst-ts-mode-outline-regexp nil t)
+	      (- (match-end 1) (match-beginning 1))
       0)))
-
-(defconst typst-ts-mode-outline-heading-alist
-  '(("= " . 1)
-    ("== " . 2)
-    ("=== " . 3)
-    ("==== " . 4)
-    ("===== " . 5)))
 
 (defun typst-ts-mode-heading--at-point-p ()
   "Whether the current line is a heading.
 Return the heading node when yes otherwise nil."
   (let ((node (treesit-node-parent
-	       (treesit-node-at
+	             (treesit-node-at
                 (save-excursion
                   (beginning-of-line-text)
                   (point))))))
@@ -1569,9 +1562,11 @@ nil and parbreak."
                   '(typst)))))
 
   ;; Outline
-  (setq-local outline-regexp typst-ts-mode-outline-regexp)
-  (setq-local outline-level #'typst-ts-mode-outline-level)
-  (setq-local outline-heading-alist typst-ts-mode-outline-heading-alist)
+  (if nil  ; (>= emacs-major-version 30)
+      ;; FIXME maybe it's a upstream bug. Circle top-level section will cycle all the content below
+      (setq treesit-outline-predicate (regexp-opt '("section" "source_file")))
+    (setq-local outline-regexp typst-ts-mode-outline-regexp)
+    (setq-local outline-level #'typst-ts-mode-outline-level))
   ;; Although without enabling `outline-minor-mode' also works, enabling it
   ;; provides outline ellipsis
   ;; TODO test remove it or add it to after-hook
