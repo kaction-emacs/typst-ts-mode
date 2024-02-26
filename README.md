@@ -119,6 +119,10 @@ command [consult](https://github.com/minad/consult), you way want this setting.
                            (?f "Functions" font-lock-function-name-face))))))
 ```
 
+## Contribute
+
+1. please work on `develop` branch, which will be combined into `main` branch every one week or so.
+
 ## Co-Maintainer
 
 [Huan Nguyen](https://sr.ht/~huan)
