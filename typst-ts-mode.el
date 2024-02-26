@@ -116,6 +116,11 @@ the current buffer."
   :type 'function
   :group 'typst-ts)
 
+(defcustom typst-ts-mode-return-function 'newline
+  "Default function for `typst-ts-mode-return' when conditions don't match."
+  :type 'function
+  :group 'typst-ts)
+
 (defcustom typst-ts-mode-watch-options ""
   "User defined compile options for `typst-ts-mode-watch'.
 The compile options will be passed to the
@@ -169,20 +174,6 @@ Note it only works when user choose `max' level of fontification precision
 level.  See `typst-ts-mode-fontification-precision-level'."
   :type 'boolean
   :group 'typst-ts-faces)
-
-(defcustom typst-ts-mode-return-autoincrement t
-  "Whether return key should autoincrement.
-Smart as in, when point is on an item with text,
-pressing return will insert a newline and then an item.
-
-When point is on an item without text pressing return it will remove the item.
-
-Example:
-+ item RETURN
-+ |< point is now here
-Pressing return again will remove the empty list item."
-  :type 'boolean
-  :group 'typst-ts)
 
 (defcustom typst-ts-markup-header-scale
   '(2.0 1.7 1.4 1.1 1.0 1.0)
@@ -1119,26 +1110,46 @@ Using ARG argument will ignore the context and it will insert a heading instead.
      (t
       (typst-ts-mode-insert--heading node)))))
 
-(defun typst-ts-mode-return (&optional arg interactive)
-  "Do something smart when `typst-ts-mode-return-autoincrement' is non nil.
-Pressing enter will do something depending on context.
-ARG and INTERACTIVE will be passed to `newline'.
-INTERACTIVE will be non nil when called interactively.
-`typst-ts-mode-return-autoincrement' for more documentation."
-  (interactive "*P\np")
-  (if (or arg (not typst-ts-mode-return-autoincrement))
-      (newline (if arg arg 1) interactive)
-    (let ((node (typst-ts-mode--item-on-line-p)))
-      (cond
-       ((string= (treesit-node-type node) "item")
-        ;; does the item have text?
-        (if (> (treesit-node-child-count node) 1)
-            (typst-ts-mode-insert--item node)
-          ;; no text means delete the item on current line
-          (beginning-of-line)
-          (kill-line)
-          (indent-according-to-mode)))
-       (t (newline (if arg arg 1) interactive))))))
+(defun typst-ts-mode-return (&optional arg)
+  "Handle RET depends on condition.
+When prefix ARG is non-nil, call `typst-ts-mode-return-function'."
+  (interactive "P")
+  (let (execute-result node)
+    (setq
+     execute-result
+     (catch 'execute-result
+       (when-let* ((cur-pos (point))
+                   (cur-node (treesit-node-at cur-pos))
+                   (cur-node-type (treesit-node-type cur-node))
+                   (parent-node (treesit-node-parent cur-node))  ; could be nil
+                   (parent-node-type (treesit-node-type parent-node)))
+         (cond
+          ;; if provided with a prefix-argument, then do `typst-ts-mode-return-function'
+          (arg (throw 'execute-result 'default))
+          ;; on item node end
+          ((and (eolp)
+                (setq node (typst-ts-mode--item-on-line-p))
+                (string= (treesit-node-type node) "item"))
+           (if (> (treesit-node-child-count node) 1)
+               (typst-ts-mode-insert--item node)
+             ;; no text means delete the item on current line
+             (beginning-of-line)
+             (kill-line)
+             (indent-according-to-mode))
+           (throw 'execute-result 'success))
+          ))))
+    ;; execute default action if not successful
+    (unless (eq execute-result 'success)
+      (if (commandp typst-ts-mode-return-function)
+          (if (and current-prefix-arg
+                   (yes-or-no-p
+                    (format
+                     "Execute function `%s' with the given prefix argument?"
+                     typst-ts-mode-return-function)))
+              (call-interactively typst-ts-mode-return-function)
+            (let ((current-prefix-arg nil))
+              (call-interactively typst-ts-mode-return-function)))
+        (funcall typst-ts-mode-return-function)))))
 
 (defun typst-ts-mode-insert--item (node)
   "Insert an item after NODE.
@@ -1148,9 +1159,12 @@ This function respects indentation."
 	       (item-type (treesit-node-text
 	                   (treesit-node-child node 0)))
          (item-number (string-to-number item-type))
-         (item-end (treesit-node-end node)))
+         (item-end (treesit-node-end node))
+         (node-bol-column (typst-ts-mode-column-at-pos
+                           (typst-ts-mode--get-node-bol node))))
     (goto-char item-end)
-    (newline-and-indent)
+    (newline)
+    (indent-to-column node-bol-column)
     (insert (if (= item-number 0)
                 item-type
               (concat (number-to-string (1+ item-number)) "."))
@@ -1326,16 +1340,15 @@ PROC: process; OUTPUT: new output from PROC."
     (current-column)))
 
 ;;;###autoload
-(defun typst-ts-mode-cycle (&optional arg)
+(defun typst-ts-mode-cycle (&optional _arg)
   "Cycle.
 Customize `typst-ts-mode-tab-function' for default tab function when no
-condition matches.
-ARG.
-TODO lack of documentation."
+condition matches."
   (interactive "P")
   (let (execute-result)
     (setq
      execute-result
+     ;; plz manually throw `\'success' to `execute-result'
      (catch 'execute-result
        (when-let* ((cur-pos (point))
                    (cur-node (treesit-node-at cur-pos))
@@ -1400,7 +1413,7 @@ TODO lack of documentation."
                    (goto-char (+ typst-ts-mode-indent-offset point)))
                  (throw 'execute-result 'success))))))
           (t nil)))))
-    ;; execute default action
+    ;; execute default action if not successful
     (unless (eq execute-result 'success)
       (if (commandp typst-ts-mode-tab-function)
           (call-interactively typst-ts-mode-tab-function)
