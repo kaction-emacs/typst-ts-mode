@@ -51,13 +51,6 @@
   :type 'natnum
   :group 'typst-ts)
 
-
-(defcustom typst-ts-mode-indent-offset-section 2
-  "The indent offset for section.
-i.e. The indentation offset after header."
-  :type 'natnum
-  :group 'typst-ts)
-
 (defcustom typst-ts-mode-fontification-precision-level 'middle
   "Whether to use precise face fontification.
 Note that precise face fontification will case performance degrading.
@@ -692,8 +685,7 @@ If you want to customize the rules, please customize the same name variable
       :feature code-standard
       ,(if typst-ts-mode-font-lock-rules-code-standard
            typst-ts-mode-font-lock-rules-code-standard
-         '((ident) @font-lock-variable-use-face
-           (builtin) @font-lock-builtin-face))
+         '((ident) @font-lock-variable-use-face))
 
       :language typst
       :feature code-extended
@@ -831,18 +823,6 @@ work well.  Example:
     (back-to-indentation)
     (point)))
 
-(defun typst-ts-mode--indentation-in-section-content (node parent bol)
-  "Detect whether current node is inside section > content.
-NODE, PARENT, BOL see info node `(elisp) Parser-based Indentation'.
-If match, return the bol of the content node."
-  (when-let ((container-node
-              (funcall (typst-ts-mode--ancestor-in typst-ts-mode--container-node-types)
-                       node parent bol)))
-    (when (and
-           (string= "content" (treesit-node-type container-node))
-           (string= "section" (treesit-node-type (treesit-node-parent container-node))))
-      (typst-ts-mode--get-node-bol container-node))))
-
 (defvar typst-ts-mode--indent-rules
   ;; debug tips:
   ;; use `typst-ts/util/setup-indent-debug-environment' function in `side/utils.el'
@@ -856,28 +836,33 @@ If match, return the bol of the content node."
   ;; no-node situation: often in insert mode > hit return at the line ending
   ;; `typst-ts-mode-indent-line-function' is created for handling end of buffer
   ;;  edge cases
+  
+  ;; Note electric-pair-mode will auto insert newline character when condition meets
+  ;; see `typst-ts-mode-electric-pair-open-newline-between-pairs-psif'
   `((typst
-     ;; ((lambda (node parent bol)  ; NOTE
-     ;;    (message "%s %s %s" node parent bol)
-     ;;    nil) parent-bol 0)
+     ((lambda (node parent bol)  ; NOTE
+        (message "%s %s %s %s %s" node parent
+                 (treesit-node-parent parent)
+                 (treesit-node-parent (treesit-node-parent parent)) bol)
+        nil) parent-bol 0)
 
-     ((n-p-gp "section" "source_file" nil) column-0 0)  ; <2>
+     ((node-is "section") column-0 0)  ; when indent headline, the current node is "section"
+
+     ((n-p-gp ,(regexp-opt '(")" "]" "}" "$"))
+              ,(regexp-opt typst-ts-mode--container-node-types)
+              nil)
+      parent-bol 0)
      
-     ((and (node-is ")") (parent-is "group")) parent-bol 0)
-     ((and (node-is "}") (parent-is "block")) parent-bol 0)
-     ((and (node-is "]") (parent-is "content")) parent-bol 0)
-     ;; math - the last "$" notation
-     ((match "$" "math" nil 2 2) parent-bol 0)
+     ;; math
+     ;; math align, example:
+     ;; sum_(k=0)^n k
+     ;;   &= 1 + ... + n \
+     ((node-is "align") parent-bol typst-ts-mode-indent-offset)
 
      ;; code field, example:
      ;; "a b c"
      ;;   .split(" ")
      ((n-p-gp "." "field" nil) parent-bol typst-ts-mode-indent-offset)
-
-     ;; math align, example:
-     ;; sum_(k=0)^n k
-     ;;   &= 1 + ... + n \
-     ((node-is "align") parent-bol typst-ts-mode-indent-offset)
 
      ;; item - child item
      ((and (node-is "item") (parent-is "item")) parent-bol typst-ts-mode-indent-offset)
@@ -900,29 +885,35 @@ If match, return the bol of the content node."
      ;; raw block
      ;; (TODO add indent offset when `typst-ts-mode-enable-raw-blocks-highlight' is t)
      ;; the last "```" notation for raw block
-     ((match "```" "raw_blck" nil 3 3) parent-bol 0)
      ((n-p-gp nil "blob" "raw_blck")
-      no-indent
-      ;; make sure the content indentation is at least as long as raw block header's
-      (lambda (_node parent bol)
-        (let* ((node-raw-blck (treesit-node-parent parent))
-               (raw-block-column (typst-ts-mode-column-at-pos
-                                  (typst-ts-mode--get-node-bol node-raw-blck)))
-               (bol-column (typst-ts-mode-column-at-pos bol)))
-          (if (< bol-column raw-block-column)
-              (- raw-block-column bol-column)
-            0))))
+      no-indent 0)
 
-     ;; section > content > *> any, suitable for no-node
-     ;; see <2>, which indents the top level headings
-     (typst-ts-mode--indentation-in-section-content
-      typst-ts-mode--indentation-in-section-content
-      typst-ts-mode-indent-offset-section)
-
+     ;; inside container, coping with difficult conditions including no-node
+     ;; container is a direct child of "section"
+     ((lambda (node parent bol)
+        (let ((ancestor-node
+               (funcall
+                (typst-ts-mode--ancestor-in typst-ts-mode--container-node-types)
+                node parent bol)))
+          (when ancestor-node
+            (equal (treesit-node-type (treesit-node-parent ancestor-node)) "section"))))
+      ,(typst-ts-mode--ancestor-bol typst-ts-mode--container-node-types)
+      0)
      ;; inside container
      (,(typst-ts-mode--ancestor-in typst-ts-mode--container-node-types)
       ,(typst-ts-mode--ancestor-bol typst-ts-mode--container-node-types)
       typst-ts-mode-indent-offset)
+     
+     ;; ((or (n-p-gp nil ,(regexp-opt typst-ts-mode--container-node-types) "section")
+     ;;      (and
+     ;;       (n-p-gp nil "parbreak" ,(regexp-opt typst-ts-mode--container-node-types))
+     ;;       (lambda (node parent _bol)
+     ;;         (equal (treesit-node-type (treesit-node-parent (treesit-node-parent parent))) "section"))))
+     ;;  parent-bol 0)
+     ;; ;; inside container
+     ;; ((or (parent-is ,(regexp-opt typst-ts-mode--container-node-types))
+     ;;      (n-p-gp nil "parbreak" ,(regexp-opt typst-ts-mode--container-node-types)))
+     ;;  parent-bol typst-ts-mode-indent-offset)
 
      ((and no-node (parent-is "source_file"))
       prev-line 0)
@@ -1502,13 +1493,33 @@ nil and parbreak."
     (backward-char))
   (treesit-indent))
 
-;;;###autoload
-(define-derived-mode typst-ts-mode text-mode "Typst"
-  "Major mode for editing Typst, powered by tree-sitter."
-  :group 'typst
-  :syntax-table typst-ts-mode-syntax-table
-  :after-hook
-  ;; it seems like the following code only works in this place (after-hook)
+(defun typst-ts-mode-electric-pair-open-newline-between-pairs-psif ()
+  "Custom version of `electric-pair-open-newline-between-pairs-psif'.
+It provide the ability to automatically open a new line for '$' character."
+  (when (and (if (functionp electric-pair-open-newline-between-pairs)
+                 (funcall electric-pair-open-newline-between-pairs)
+               electric-pair-open-newline-between-pairs)
+             (eq last-command-event ?\n)
+             (< (1+ (point-min)) (point) (point-max))
+             (let ((cb (save-excursion
+                         (skip-chars-backward "\t\s")
+                         (char-before (1- (point)))))
+                   (ca (char-after)))
+               (or (eq cb (matching-paren ca))
+                   (and (eq cb ?\$) (eq ca ?\$)))))
+    (save-excursion (newline 1 t))))
+
+(defun typst-ts-mode-after-hook-function ()
+  "Run after all hooks in `typst-ts-mode-hook'."
+  ;; patch `electric-pair-post-self-insert-function' function
+  (when electric-pair-mode
+    ;; add-function :override buffer-locally doesn't work, so we do this...
+    (remove-hook 'post-self-insert-hook 'electric-pair-post-self-insert-function t)
+    (add-hook 'post-self-insert-hook
+              'typst-ts-mode-electric-pair-open-newline-between-pairs-psif
+              t))
+  
+  ;; it seems like the following code only works after-hook
   (when (and typst-ts-mode-enable-raw-blocks-highlight
              typst-ts-mode-highlight-raw-blocks-at-startup)
     ;; since currently local parsers haven't created, we cannot only load
@@ -1523,7 +1534,15 @@ nil and parbreak."
                ;; some feature like cmake-ts-mode will create a parser when
                ;; the feature is required, so we need to clean thease parsers
                (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
-               (add-to-list 'typst-ts-els--include-languages lang))))
+               (add-to-list 'typst-ts-els--include-languages lang)))))
+
+;;;###autoload
+(define-derived-mode typst-ts-mode text-mode "Typst"
+  "Major mode for editing Typst, powered by tree-sitter."
+  :group 'typst
+  :syntax-table typst-ts-mode-syntax-table
+  :after-hook
+  (typst-ts-mode-after-hook-function)
 
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
@@ -1539,10 +1558,9 @@ nil and parbreak."
 
   ;; Electric
   (setq-local
-   ;; =: heading and others
    ;; &: math align
    ;; .: code field
-   electric-indent-chars (append "{}()[]$=&." electric-indent-chars)
+   electric-indent-chars (append "{}()[]$&." electric-indent-chars)
    electric-pair-pairs '((?\" . ?\")
                          (?\{ . ?\})
                          (?\( . ?\))

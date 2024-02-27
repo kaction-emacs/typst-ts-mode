@@ -17,7 +17,7 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 `typst 0.10.0 (70ca0d25)`
 
 3. Tree Sitter grammar for Typst: https://github.com/uben0/tree-sitter-typst  
-   commit: `3a6c81bb56082604f5e63834cb2f946beeda1e76 - Feb 7, 2024`  
+   commit: `3c3e5f8e0caeba6157e26a1bedf8321e1da62799 - Feb 28, 2024`  
    To install the grammar, you can execute the following elisp code:  
 
    ``` emacs-lisp
@@ -65,8 +65,8 @@ defined by `outline-minor-mode` such as `outline-cycle`.
 For customizable options: `customize` -> `typst-ts`.  
 
 Here are some options you may find useful:  
-1. `typst-ts-mode-indent-offset` (default 4) and `typst-ts-mode-indent-offset-section` (default 2)  
-   Set `typst-ts-mode-indent-offset-section` to 0 to make the structure flat.
+1. `typst-ts-mode-indent-offset` (default 4)  
+   Use [outline-indent-mode](https://sr.ht/~meow_king/outline-indent-mode/) to behave like `org-indent-mode`.
 2. `typst-ts-mode-executable-location`  
 3. `typst-ts-mode-watch-options`.  
    Set this to `--open` so typst will open the compiled file for you.
