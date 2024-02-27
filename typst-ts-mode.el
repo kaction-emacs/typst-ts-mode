@@ -93,11 +93,6 @@ The compile options will be passed to the end of
   :type 'string
   :group 'typst-ts)
 
-(defcustom typst-ts-mode-highlight-raw-block t
-  "Enable highlighting raw block."
-  :type 'boolean
-  :group 'typst-ts)
-
 (defcustom typst-ts-mode-before-compile-hook nil
   "Hook runs after compile."
   :type 'hook
@@ -903,7 +898,7 @@ If match, return the bol of the content node."
       0)
 
      ;; raw block
-     ;; (TODO add indent offset when `typst-ts-mode-highlight-raw-block' is enabled)
+     ;; (TODO add indent offset when `typst-ts-mode-enable-raw-blocks-highlight' is t)
      ;; the last "```" notation for raw block
      ((match "```" "raw_blck" nil 3 3) parent-bol 0)
      ((n-p-gp nil "blob" "raw_blck")
@@ -940,6 +935,34 @@ If match, return the bol of the content node."
      ;; example: (item (text) (text) (text)) when `(text)' is in different line
      (catch-all prev-line 0)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
+
+(defvar typst-ts-mode-indent-function nil
+  "This variable shouldn't be customized by user.
+It should hold the originally value of `treesit-indent-function'.")
+
+(defun typst-ts-mode-indent (node parent bol)
+  "Indent function for `treesit-indent-function'.
+This function basically call `typst-ts-mode-indent-function' (i.e. the original
+`treesit-indent-function' to indent), and then it checks whether the current
+line has a local parser (i.e. raw block with highlight on).  If it has, we
+add offset to the line to match the indentation of raw block label.
+NODE, PARENT and BOL see `treesit-indent-function'."
+  (unless typst-ts-mode-indent-function
+    (error "Variable `typst-ts-mode-indent-function' shouldn't be null!"))
+  (let ((res (funcall typst-ts-mode-indent-function node parent bol)))
+    ;; if it is a highlighted raw block region (i.e. contains at least one local parser)
+    (unless (car res) (setcar res (save-excursion (beginning-of-line) (point))))
+    (when (treesit-local-parsers-at (treesit-node-start node))
+      (let* ((blob_node (treesit-node-at bol 'typst))
+             (raw_block_node (treesit-node-parent blob_node))
+             (raw_block_bol_column (typst-ts-mode-column-at-pos
+                                    (typst-ts-mode--get-node-bol raw_block_node)))
+             (cur-line-bol (save-excursion (back-to-indentation) (point)))
+             (cur-line-bol-column (typst-ts-mode-column-at-pos cur-line-bol))
+             (offset (- raw_block_bol_column cur-line-bol-column)))
+        (when (> offset 0)
+          (setcdr res raw_block_bol_column))))
+    res))
 
 (defun typst-ts-mode-comment-setup()
   "Setup comment related stuffs for `typst-ts-mode'."
@@ -1164,7 +1187,7 @@ This function respects indentation."
                            (typst-ts-mode--get-node-bol node))))
     (goto-char item-end)
     (newline)
-    (indent-to-column node-bol-column)
+    (indent-line-to node-bol-column)
     (insert (if (= item-number 0)
                 item-type
               (concat (number-to-string (1+ item-number)) "."))
@@ -1505,13 +1528,11 @@ nil and parbreak."
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
 
-  (if typst-ts-mode-enable-raw-blocks-highlight
-      (let ((parser (treesit-parser-create 'typst)))
-        (when typst-ts-mode-highlight-raw-block
-          (treesit-parser-add-notifier
-           parser
-           'typst-ts-els-include-dynamically)))
-    (treesit-parser-create 'typst))
+  (let ((parser (treesit-parser-create 'typst)))
+    (when typst-ts-mode-enable-raw-blocks-highlight
+      (treesit-parser-add-notifier
+       parser
+       'typst-ts-els-include-dynamically)))
 
   ;; Comments.
   (typst-ts-mode-comment-setup)
@@ -1575,6 +1596,8 @@ nil and parbreak."
   ;; TODO add it to after-hook
   (outline-minor-mode t)
   
+  (setq-local typst-ts-mode-indent-function treesit-indent-function
+              treesit-indent-function 'typst-ts-mode-indent)
   (treesit-major-mode-setup)
 
   (setq-local indent-line-function #'typst-ts-mode-indent-line-function))
