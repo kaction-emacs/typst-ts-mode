@@ -30,10 +30,10 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 
 ## Installation
 
-For reference, this is my configuration.
+Example configuration.
 ``` emacs-lisp
 (use-package typst-ts-mode
-  :elpaca (:type git :host sourcehut :repo "meow_king/typst-ts-mode" :files ("*.el"))
+  :ensure (:type git :host sourcehut :repo "meow_king/typst-ts-mode" :files (:defaults "*.el"))
   :custom
   ;; don't add "--open" if you'd like `watch` to be an error detector
   (typst-ts-mode-watch-options "--open")
