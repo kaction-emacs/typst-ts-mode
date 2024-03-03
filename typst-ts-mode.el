@@ -847,11 +847,10 @@ work well.  Example:
      ;;    (message "%s %s %s %s %s" node parent
      ;;             (treesit-node-parent parent)
      ;;             (treesit-node-parent (treesit-node-parent parent)) bol)
-     ;;    nil) parent-bol 0)
+     ;;    nil)
+     ;;  parent-bol 0)
      
      ((parent-is "source_file") column-0 0)
-
-     ((node-is "section") column-0 0)  ; when indent headline, the current node is "section"
 
      ((n-p-gp ,(regexp-opt '(")" "]" "}" "$"))
               ,(regexp-opt typst-ts-mode--container-node-types)
@@ -877,13 +876,14 @@ work well.  Example:
       typst-ts-mode--indentation-item-linebreak-get-pos typst-ts-mode-indent-offset)
 
      ;; item - item should follow its previous line item's indentation level
-     ((lambda (node parent &rest _)
-        (save-excursion
-          (forward-line -1)
-          (back-to-indentation)
-          (string= "item" (treesit-node-type
-                           (treesit-node-parent
-                            (treesit-node-at (point)))))))
+     ((and no-node
+           (lambda (node parent &rest _)
+             (save-excursion
+               (forward-line -1)
+               (back-to-indentation)
+               (string= "item" (treesit-node-type
+                                (treesit-node-parent
+                                 (treesit-node-at (point))))))))
       prev-line
       0)
 
