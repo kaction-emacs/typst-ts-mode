@@ -737,7 +737,9 @@ If you want to customize the rules, please customize the same name variable
     (markup-extended code-extended math-extended)))
 
 (defconst typst-ts-mode--container-node-types
-  '("block" "content" "group" "math")
+  ;; '_math_group' here is because `treesit-parent-until' doesn't hanlde node type alias well
+  ;; TODO file a bug
+  '("block" "content" "group" "math" "_math_group")
   "Bracket node types.")
 
 (defun typst-ts-mode--node-inside-brackets (parent)
@@ -762,17 +764,18 @@ The returned function suits `treesit-simple-indent-rules' Match.
 If RETURN-BOL is non-nil, then return returns the beginning of line position of
 the corresponding ancestor node that its type is in TYPES, else return the
 corresponding ancestor node.  Return nil if ancestor not matching."
-  (lambda (_node parent _bol)
-    (let* ((query-node parent)
-           (ancestor (treesit-parent-until
-                      query-node
-                      (lambda (parent)
-                        (member (treesit-node-type parent) types))
-                      t)))
-      (if return-bol
-          (when ancestor
-            (typst-ts-mode--get-node-bol ancestor))
-        ancestor))))
+  (let ((re (regexp-opt types)))
+    (lambda (_node parent _bol)
+      (let* ((query-node parent)
+             (ancestor (treesit-parent-until
+                        query-node
+                        (lambda (parent)
+                          (string-match-p re (treesit-node-type parent)))
+                        t)))
+        (if return-bol
+            (when ancestor
+              (typst-ts-mode--get-node-bol ancestor))
+          ancestor)))))
 
 (defun typst-ts-mode--ancestor-bol (types)
   "See `typst-ts-mode--ancestor-in'.
@@ -840,11 +843,13 @@ work well.  Example:
   ;; Note electric-pair-mode will auto insert newline character when condition meets
   ;; see `typst-ts-mode-electric-pair-open-newline-between-pairs-psif'
   `((typst
-     ((lambda (node parent bol)  ; NOTE
-        (message "%s %s %s %s %s" node parent
-                 (treesit-node-parent parent)
-                 (treesit-node-parent (treesit-node-parent parent)) bol)
-        nil) parent-bol 0)
+     ;; ((lambda (node parent bol)  ; NOTE
+     ;;    (message "%s %s %s %s %s" node parent
+     ;;             (treesit-node-parent parent)
+     ;;             (treesit-node-parent (treesit-node-parent parent)) bol)
+     ;;    nil) parent-bol 0)
+     
+     ((parent-is "source_file") column-0 0)
 
      ((node-is "section") column-0 0)  ; when indent headline, the current node is "section"
 
@@ -904,20 +909,6 @@ work well.  Example:
       ,(typst-ts-mode--ancestor-bol typst-ts-mode--container-node-types)
       typst-ts-mode-indent-offset)
      
-     ;; ((or (n-p-gp nil ,(regexp-opt typst-ts-mode--container-node-types) "section")
-     ;;      (and
-     ;;       (n-p-gp nil "parbreak" ,(regexp-opt typst-ts-mode--container-node-types))
-     ;;       (lambda (node parent _bol)
-     ;;         (equal (treesit-node-type (treesit-node-parent (treesit-node-parent parent))) "section"))))
-     ;;  parent-bol 0)
-     ;; ;; inside container
-     ;; ((or (parent-is ,(regexp-opt typst-ts-mode--container-node-types))
-     ;;      (n-p-gp nil "parbreak" ,(regexp-opt typst-ts-mode--container-node-types)))
-     ;;  parent-bol typst-ts-mode-indent-offset)
-
-     ((and no-node (parent-is "source_file"))
-      prev-line 0)
-
      ;; TODO to be examined
      (,(typst-ts-mode--ancestor-in '("ERROR")) no-indent 0)
 
