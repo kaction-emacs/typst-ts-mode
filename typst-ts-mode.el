@@ -853,6 +853,7 @@ Used in `typst-ts-mode-indent-rules'."
      ;;    nil)
      ;;  parent-bol 0)
      
+     ((and no-node (parent-is "source_file")) prev-line 0)
      ((parent-is "source_file") column-0 0)
 
      ((n-p-gp ,(regexp-opt '(")" "]" "}" "$"))
@@ -908,6 +909,8 @@ Used in `typst-ts-mode-indent-rules'."
       parent-bol typst-ts-mode-indent-offset)
 
      (no-node parent-bol 0)
+
+     ((parent-is "ERROR") no-indent 0)
 
      ;; example: (item (text) (text) (text)) when `(text)' is in different line
      (catch-all prev-line 0)))
