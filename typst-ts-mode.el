@@ -1134,7 +1134,8 @@ When prefix ARG is non-nil, call `typst-ts-mode-return-function'."
           ;; on item node end
           ((and (eolp)
                 (setq node (typst-ts-mode--item-on-line-p))
-                (string= (treesit-node-type node) "item"))
+                (string= (treesit-node-type node) "item")
+                (not (string= (treesit-node-get node '((child -1 nil) (type))) "linebreak")))
            (if (> (treesit-node-child-count node) 1)
                (typst-ts-mode-insert--item node)
              ;; no text means delete the item on current line
