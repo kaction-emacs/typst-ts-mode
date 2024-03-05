@@ -51,6 +51,18 @@
   :type 'natnum
   :group 'typst-ts)
 
+(defcustom typst-ts-mode-grammar-location nil
+  "Specify typst tree sitter grammar file location.
+This is used for grammar minimum version check.  The modified time of the
+grammar file is used for comparing.
+This variable is used in `typst-ts-mode-check-grammar-version'."
+  :type '(choice (string :tag "typst tree sitter grammar file location")
+                 (const :tag "Don't enable grammar version check" nil))
+  :group 'typst-ts)
+
+(defvar typst-ts-mode--grammar-minimum-version-timestamp 1709115941
+  "Timestamp for the minimum supported typst tree sitter grammar version.")
+
 (defcustom typst-ts-mode-fontification-precision-level 'middle
   "Whether to use precise face fontification.
 Note that precise face fontification will case performance degrading.
@@ -1496,6 +1508,22 @@ It provide the ability to automatically open a new line for '$' character."
                    (and (eq cb ?\$) (eq ca ?\$)))))
     (save-excursion (newline 1 t))))
 
+(defun typst-ts-mode-check-grammar-version ()
+  "Check typst tree sitter grammar version.
+May not be correct(modified time can be the download time, copied time, etc.),
+but it does help prevent some error cases."
+  (when typst-ts-mode-grammar-location
+    (let ((min-time (time-convert typst-ts-mode--grammar-minimum-version-timestamp nil))
+          (mod-time
+           (file-attribute-modification-time
+            (file-attributes typst-ts-mode-grammar-location))))
+      (when (time-less-p mod-time min-time)
+        (message
+         (propertize
+          (format "Please ensure that you have installed the latest \
+typst tree sitter grammar (at least %s)!" (current-time-string min-time))
+          'face '(:weight bold :foreground "firebrick")))))))
+
 (defun typst-ts-mode-after-hook-function ()
   "Run after all hooks in `typst-ts-mode-hook'."
   ;; patch `electric-pair-post-self-insert-function' function
@@ -1521,7 +1549,9 @@ It provide the ability to automatically open a new line for '$' character."
                ;; some feature like cmake-ts-mode will create a parser when
                ;; the feature is required, so we need to clean thease parsers
                (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
-               (add-to-list 'typst-ts-els--include-languages lang)))))
+               (add-to-list 'typst-ts-els--include-languages lang))))
+
+  (typst-ts-mode-check-grammar-version))
 
 ;;;###autoload
 (define-derived-mode typst-ts-mode text-mode "Typst"
