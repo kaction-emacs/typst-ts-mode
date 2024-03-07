@@ -1114,17 +1114,6 @@ return the node that is one character left from the end of line."
          (goto-char (1- (pos-eol)))))
       (point)))))
 
-(defun typst-ts-mode--item-escape-p ()
-  "Does the end have an escape?"
-  (string= (treesit-node-type
-            (treesit-node-at
-             (save-excursion
-               ;; like back-to-indentation but for trailing lines at the end
-               (move-end-of-line nil)
-               (re-search-backward "^\\|[^[:space:]]")
-               (point))))
-           "escape"))
-
 (defun typst-ts-mode-meta-return (&optional arg)
   "Depending on context, insert a heading or insert an item.
 The new heading is created after the ending of current heading.
@@ -1133,8 +1122,7 @@ Using ARG argument will ignore the context and it will insert a heading instead.
   (let ((node (typst-ts-mode--item-on-line-p)))
     (cond
      (arg (typst-ts-mode-insert--heading nil))
-     ((and (string= (treesit-node-type node) "item")
-           (not (typst-ts-mode--item-escape-p)))
+     ((string= (treesit-node-type node) "item")
       (typst-ts-mode-insert--item node))
      (t
       (typst-ts-mode-insert--heading node)))))
@@ -1157,8 +1145,7 @@ When prefix ARG is non-nil, call global return function."
           ;; on item node end
           ((and (eolp)
                 (setq node (typst-ts-mode--item-on-line-p))
-                (and (string= (treesit-node-type node) "item")
-                     (not (typst-ts-mode--item-escape-p)))
+                (string= (treesit-node-type node) "item")
                 (not (string= (treesit-node-get node '((child -1 nil) (type))) "linebreak")))
            (if (> (treesit-node-child-count node) 1)
                (typst-ts-mode-insert--item node)
@@ -1186,8 +1173,8 @@ When prefix ARG is non-nil, call global return function."
 NODE must be an item node!
 This function respects indentation."
   (let* (;; +, -, or <num>.
-	 (item-type (treesit-node-text
-	             (treesit-node-child node 0)))
+	       (item-type (treesit-node-text
+	                   (treesit-node-child node 0)))
          (item-number (string-to-number item-type))
          (item-end (treesit-node-end node))
          (node-bol-column (typst-ts-mode-column-at-pos
