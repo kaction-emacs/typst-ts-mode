@@ -485,7 +485,7 @@ BTW, if you want to enable/disable specific font lock feature, please change
 (defvar typst-ts-mode-font-lock-rules-math-extended nil
   "See variable `typst-ts-mode-font-lock-rules'.")
 
-(defun typst-ts-mode-highlight-block-fn (node _override _start _end)
+(defun typst-ts-mode-highlight-raw-block-fn (node _override _start _end)
   "A function used in `typst-ts-mode-font-lock-rules'.
 This function assign `typst-ts-markup-rawblock-blob-face' to those raw block
 whose language cannot be found or be loaded.
@@ -521,7 +521,7 @@ If you want to customize the rules, please customize the same name variable
                     '((raw_blck
                        "```" @typst-ts-markup-rawblock-indicator-face
                        (ident) :? @typst-ts-markup-rawblock-lang-face
-                       (blob) @typst-ts-mode-highlight-block-fn
+                       (blob) @typst-ts-mode-highlight-raw-block-fn
                        "```" @typst-ts-markup-rawblock-indicator-face))
                   '((raw_blck) @typst-ts-markup-rawblock-face))
               (label) @typst-ts-markup-label-face
@@ -543,7 +543,7 @@ If you want to customize the rules, please customize the same name variable
                "`" @typst-ts-markup-rawspan-indicator-face)
               (raw_blck
                "```" @typst-ts-markup-rawblock-indicator-face
-               (ident) :? @typst-ts-markup-rawblock-lang-face
+               (ident) :? @typst-ts-mode-highlight-raw-block-fn
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
                      '((blob) @typst-ts-mode-highlight-block-fn)
@@ -599,7 +599,7 @@ If you want to customize the rules, please customize the same name variable
                "`" @typst-ts-markup-rawspan-indicator-face)
               (raw_blck
                "```" @typst-ts-markup-rawblock-indicator-face
-               (ident) :? @typst-ts-markup-rawblock-lang-face
+               (ident) :? @typst-ts-mode-highlight-raw-block-fn
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
                      '((blob) @typst-ts-mode-highlight-block-fn)
