@@ -312,11 +312,6 @@ See `typst-ts-mode-fontification-precision-level'."
   "Face for item."
   :group 'typst-ts-faces)
 
-(defface typst-ts-markup-item-text-face
-  '((t :inherit default))
-  "Face for item."
-  :group 'typst-ts-faces)
-
 (defface typst-ts-markup-term-face
   '((t :inherit shadow))
   "Face for whole term, use in min and middle fontification level.
@@ -536,8 +531,7 @@ If you want to customize the rules, please customize the same name variable
               (emph) @typst-ts-markup-emphasis-face
               (strong) @typst-ts-markup-strong-face
               (item
-               "-" @typst-ts-markup-item-indicator-face
-               (text) @typst-ts-markup-item-text-face)
+               "-" @typst-ts-markup-item-indicator-face)
               (term
                "/" @typst-ts-markup-term-indicator-face
                term: (text) @typst-ts-markup-term-term-face
@@ -592,8 +586,7 @@ If you want to customize the rules, please customize the same name variable
                (text) @typst-ts-markup-strong-face
                "*" @typst-ts-markup-strong-indicator-face)
               (item
-               "-" @typst-ts-markup-item-indicator-face
-               (text) @typst-ts-markup-item-text-face)
+               "-" @typst-ts-markup-item-indicator-face)
               (term
                "/" @typst-ts-markup-term-indicator-face
                term: (text) @typst-ts-markup-term-term-face
