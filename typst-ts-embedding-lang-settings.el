@@ -668,7 +668,8 @@ Use function `typst-ts-embedding-lang-settings-test' to test your settings.")
      treesit-font-lock-settings (append treesit-font-lock-settings
                                         font-lock-settings)
      treesit-simple-indent-rules (append treesit-simple-indent-rules
-                                         indentation-rules)
+                                         (treesit--indent-rules-optimize
+                                          indentation-rules))
      treesit-font-lock-feature-list (typst-ts-els--merge-features
                                      treesit-font-lock-feature-list
                                      ts-feature-list))))
@@ -811,7 +812,8 @@ Use this function as one notifier of `treesit-parser-notifiers'."
 
                        (setq treesit-simple-indent-rules
                              (append treesit-simple-indent-rules
-                                     (plist-get settings :treesit-simple-indent-rules)))
+                                     (treesit--indent-rules-optimize
+                                      (plist-get settings :treesit-simple-indent-rules))))
 
                        (setq treesit-font-lock-feature-list
                              (typst-ts-els--merge-features
@@ -821,8 +823,7 @@ Use this function as one notifier of `treesit-parser-notifiers'."
                    (error
                     (message "Loading %s language settings without luck: \n%s"
                              lang
-                             (error-message-string err)))))
-               ))
+                             (error-message-string err)))))))
           ;; whatever, we won't load that language again
           (add-to-list 'typst-ts-els--include-languages lang))
         ))))

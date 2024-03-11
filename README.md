@@ -17,7 +17,7 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 `typst 0.10.0 (70ca0d25)`
 
 3. Tree Sitter grammar for Typst: https://github.com/uben0/tree-sitter-typst  
-   commit: `3a6c81bb56082604f5e63834cb2f946beeda1e76 - Feb 7, 2024`  
+   commit: `3c3e5f8e0caeba6157e26a1bedf8321e1da62799 - Feb 28, 2024`  
    To install the grammar, you can execute the following elisp code:  
 
    ``` emacs-lisp
@@ -30,10 +30,10 @@ Tree Sitter support for Typst. Minimum Emacs version requirement: 29.
 
 ## Installation
 
-For reference, this is my configuration.
+Example configuration.
 ``` emacs-lisp
 (use-package typst-ts-mode
-  :elpaca (:type git :host sourcehut :repo "meow_king/typst-ts-mode")
+  :ensure (:type git :host sourcehut :repo "meow_king/typst-ts-mode" :files (:defaults "*.el"))
   :custom
   ;; don't add "--open" if you'd like `watch` to be an error detector
   (typst-ts-mode-watch-options "--open")
@@ -45,19 +45,19 @@ For reference, this is my configuration.
 
 ## Keys
 
-`C-c C-c c` : `typst-ts-mode-compile-and-preview`  
-`C-c C-c C` : `typst-ts-mode-compile`  
-`C-c C-c w` : `typst-ts-mode-watch-toggle`  
-`C-c C-c p` : `typst-ts-mode-preview`  
-`M-<left>`  : `typst-ts-mode-heading-decrease`  
-`M-<right>` : `typst-ts-mode-heading-increase`  
-`M-<up>`    : `typst-ts-mode-heading-up`  
-`M-<down>`  : `typst-ts-mode-heading-down`  
-`TAB`       : `typst-ts-mode-cycle`  
-`M-<return>`: `typst-ts-mode-meta-return`  
-`<return>`  : `typst-ts-mode-return`  
+**`C-c C-c c`** : **`typst-ts-mode-compile-and-preview`**  
+**`C-c C-c C`** : **`typst-ts-mode-compile`**  
+**`C-c C-c w`** : **`typst-ts-mode-watch-toggle`**  
+**`C-c C-c p`** : **`typst-ts-mode-preview`**  
+**`M-<left>`**  : **`typst-ts-mode-heading-decrease`**  
+**`M-<right>`** : **`typst-ts-mode-heading-increase`**  
+**`M-<up>`**    : **`typst-ts-mode-heading-up`**  
+**`M-<down>`**  : **`typst-ts-mode-heading-down`**  
+**`TAB`**       : **`typst-ts-mode-cycle`**  
+**`M-<return>`**: **`typst-ts-mode-meta-return`**  
+**`<return>`**  : **`typst-ts-mode-return`**  
 
-*NOTE*: `outline-minor-mode` is enabled by `typst-ts-mode`, so you can use comamnd 
+*NOTE*: `outline-minor-mode` is enabled by `typst-ts-mode`, so you can use command 
 defined by `outline-minor-mode` such as `outline-cycle`.
 
 ## Customization Options
@@ -65,36 +65,36 @@ defined by `outline-minor-mode` such as `outline-cycle`.
 For customizable options: `customize` -> `typst-ts`.  
 
 Here are some options you may find useful:  
-1. `typst-ts-mode-indent-offset` (default 4) and `typst-ts-mode-indent-offset-section` (default 2)  
-   Set `typst-ts-mode-indent-offset-section` to 0 to make the structure flat.
-2. `typst-ts-mode-executable-location`  
-3. `typst-ts-mode-watch-options`.  
+1. **`typst-ts-mode-indent-offset`** (default 4)  
+   Use [outline-indent-mode](https://sr.ht/~meow_king/outline-indent-mode/) to behave like `org-indent-mode`.
+2. **`typst-ts-mode-executable-location`**  
+3. **`typst-ts-mode-watch-options`**.  
    Set this to `--open` so typst will open the compiled file for you.
-4. `typst-ts-mode-compile-options`.  
+4. **`typst-ts-mode-compile-options`**.  
    Note that setting `--open` has no use for this customization variable. 
    You can execute the shell command `typst compile <file> --open && sleep 1`
    to view what is happening. 
-5. `typst-ts-mode-display-watch-process-bufer-automatically`. (default `t`)  
+5. **`typst-ts-mode-display-watch-process-bufer-automatically`**. (default `t`)  
    so the `typst watch` process buffer appear when an error occurs, and 
    disappear when there is no error. You may find sometimes there is only one 
    error at a time, and it is because Typst itself do this style. 
    You may find `auto-save-visited-mode`,
    [auto-save](https://github.com/manateelazycat/auto-save) or 
    [super-save](https://github.com/bbatsov/super-save) useful (or annoying).
-6. `typst-ts-mode-before-compile-hook` and `typst-ts-mode-after-compile-hook`  
-7. `typst-ts-mode-return-autoincrement` autoincrement lists when pressing RETURN (default `t`).
+6. **`typst-ts-mode-before-compile-hook`** and **`typst-ts-mode-after-compile-hook`**  
+7. **`typst-ts-mode-return-autoincrement`** autoincrement lists when pressing RETURN (default `t`).
 
 ### Fontification
-1. `typst-ts-mode-fontification-precise-level` (default `'middle`)  
+1. **`typst-ts-mode-fontification-precise-level`** (default `'middle`)  
    Available values: `min`, `middle` and `max`. Different level affects the precision
    of the fontification. For example, `- item`, we may fontify the whole expression
    using one face, or two faces. Note it is related to the performance of fontification
    process, especially the first fontification process (when you open the file).  
-2. `typst-ts-markup-header-same-height` and `typst-ts-markup-header-scale`  
-   Control header height. Note that it only works when `typst-ts-mode-fontification-precise-level`
+2. **`typst-ts-markup-header-same-height`** and **`typst-ts-markup-header-scale`**  
+   Control header height. Note that it only works when **`typst-ts-mode-fontification-precise-level`**
    is set to `max`.
 3. Override default font lock rules  
-   Please see the documentation of `typst-ts-mode-font-lock-rules`, you can find 
+   Please see the documentation of **`typst-ts-mode-font-lock-rules`**, you can find 
    how to override the whole font lock rules or only small part of the font lock
    rules.
 
@@ -103,9 +103,9 @@ _This is an experimental feature_
 Only support tree-sitter languages.  
 For more detailed documentation about raw block highlighting see 
 [this documentation](./doc/raw-block-highlighing.md)  
-1. `typst-ts-mode-enable-raw-blocks-highlight` (default `nil`)  
-2. `typst-ts-mode-highlight-raw-blocks-at-startup` (default `nil`)  
-3. `typst-ts-highlight-raw-block-langs-not-in-predefined-settings` (default `t`)  
+1. **`typst-ts-mode-enable-raw-blocks-highlight`** (default `nil`)  
+2. **`typst-ts-mode-highlight-raw-blocks-at-startup`** (default `nil`)  
+3. **`typst-ts-highlight-raw-block-langs-not-in-predefined-settings`** (default `t`)  
 
 ### Consult Imenu Integration
 If you use `consult-iemnu`

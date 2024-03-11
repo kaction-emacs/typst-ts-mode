@@ -51,12 +51,17 @@
   :type 'natnum
   :group 'typst-ts)
 
-
-(defcustom typst-ts-mode-indent-offset-section 2
-  "The indent offset for section.
-i.e. The indentation offset after header."
-  :type 'natnum
+(defcustom typst-ts-mode-grammar-location nil
+  "Specify typst tree sitter grammar file location.
+This is used for grammar minimum version check.  The modified time of the
+grammar file is used for comparing.
+This variable is used in `typst-ts-mode-check-grammar-version'."
+  :type '(choice (string :tag "typst tree sitter grammar file location")
+                 (const :tag "Don't enable grammar version check" nil))
   :group 'typst-ts)
+
+(defvar typst-ts-mode--grammar-minimum-version-timestamp 1709115941
+  "Timestamp for the minimum supported typst tree sitter grammar version.")
 
 (defcustom typst-ts-mode-fontification-precision-level 'middle
   "Whether to use precise face fontification.
@@ -93,11 +98,6 @@ The compile options will be passed to the end of
   :type 'string
   :group 'typst-ts)
 
-(defcustom typst-ts-mode-highlight-raw-block t
-  "Enable highlighting raw block."
-  :type 'boolean
-  :group 'typst-ts)
-
 (defcustom typst-ts-mode-before-compile-hook nil
   "Hook runs after compile."
   :type 'hook
@@ -109,16 +109,6 @@ Note the requirement of this hook is the same as `compilation-finish-functions'.
 Also note that this hook runs with typst buffer(the buffer you are editing) as
 the current buffer."
   :type 'hook
-  :group 'typst-ts)
-
-(defcustom typst-ts-mode-tab-function 'indent-for-tab-command
-  "Default function for `typst-ts-mode-cycle' when conditions don't match."
-  :type 'function
-  :group 'typst-ts)
-
-(defcustom typst-ts-mode-return-function 'newline
-  "Default function for `typst-ts-mode-return' when conditions don't match."
-  :type 'function
   :group 'typst-ts)
 
 (defcustom typst-ts-mode-watch-options ""
@@ -322,11 +312,6 @@ See `typst-ts-mode-fontification-precision-level'."
   "Face for item."
   :group 'typst-ts-faces)
 
-(defface typst-ts-markup-item-text-face
-  '((t :inherit default))
-  "Face for item."
-  :group 'typst-ts-faces)
-
 (defface typst-ts-markup-term-face
   '((t :inherit shadow))
   "Face for whole term, use in min and middle fontification level.
@@ -500,7 +485,7 @@ BTW, if you want to enable/disable specific font lock feature, please change
 (defvar typst-ts-mode-font-lock-rules-math-extended nil
   "See variable `typst-ts-mode-font-lock-rules'.")
 
-(defun typst-ts-mode-highlight-block-fn (node _override _start _end)
+(defun typst-ts-mode-highlight-raw-block-fn (node _override _start _end)
   "A function used in `typst-ts-mode-font-lock-rules'.
 This function assign `typst-ts-markup-rawblock-blob-face' to those raw block
 whose language cannot be found or be loaded.
@@ -536,7 +521,7 @@ If you want to customize the rules, please customize the same name variable
                     '((raw_blck
                        "```" @typst-ts-markup-rawblock-indicator-face
                        (ident) :? @typst-ts-markup-rawblock-lang-face
-                       (blob) @typst-ts-mode-highlight-block-fn
+                       (blob) @typst-ts-mode-highlight-raw-block-fn
                        "```" @typst-ts-markup-rawblock-indicator-face))
                   '((raw_blck) @typst-ts-markup-rawblock-face))
               (label) @typst-ts-markup-label-face
@@ -546,8 +531,7 @@ If you want to customize the rules, please customize the same name variable
               (emph) @typst-ts-markup-emphasis-face
               (strong) @typst-ts-markup-strong-face
               (item
-               "-" @typst-ts-markup-item-indicator-face
-               (text) @typst-ts-markup-item-text-face)
+               "-" @typst-ts-markup-item-indicator-face)
               (term
                "/" @typst-ts-markup-term-indicator-face
                term: (text) @typst-ts-markup-term-term-face
@@ -559,7 +543,7 @@ If you want to customize the rules, please customize the same name variable
                "`" @typst-ts-markup-rawspan-indicator-face)
               (raw_blck
                "```" @typst-ts-markup-rawblock-indicator-face
-               (ident) :? @typst-ts-markup-rawblock-lang-face
+               (ident) :? @typst-ts-mode-highlight-raw-block-fn
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
                      '((blob) @typst-ts-mode-highlight-block-fn)
@@ -602,8 +586,7 @@ If you want to customize the rules, please customize the same name variable
                (text) @typst-ts-markup-strong-face
                "*" @typst-ts-markup-strong-indicator-face)
               (item
-               "-" @typst-ts-markup-item-indicator-face
-               (text) @typst-ts-markup-item-text-face)
+               "-" @typst-ts-markup-item-indicator-face)
               (term
                "/" @typst-ts-markup-term-indicator-face
                term: (text) @typst-ts-markup-term-term-face
@@ -616,7 +599,7 @@ If you want to customize the rules, please customize the same name variable
                "`" @typst-ts-markup-rawspan-indicator-face)
               (raw_blck
                "```" @typst-ts-markup-rawblock-indicator-face
-               (ident) :? @typst-ts-markup-rawblock-lang-face
+               (ident) :? @typst-ts-mode-highlight-raw-block-fn
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
                      '((blob) @typst-ts-mode-highlight-block-fn)
@@ -697,8 +680,7 @@ If you want to customize the rules, please customize the same name variable
       :feature code-standard
       ,(if typst-ts-mode-font-lock-rules-code-standard
            typst-ts-mode-font-lock-rules-code-standard
-         '((ident) @font-lock-variable-use-face
-           (builtin) @font-lock-builtin-face))
+         '((ident) @font-lock-variable-use-face))
 
       :language typst
       :feature code-extended
@@ -749,18 +731,11 @@ If you want to customize the rules, please customize the same name variable
     (markup-standard code-standard math-standard)
     (markup-extended code-extended math-extended)))
 
-(defconst typst-ts-mode--container-node-types
-  '("block" "content" "group" "math")
-  "Bracket node types.")
-
-(defun typst-ts-mode--node-inside-brackets (parent)
-  "Return the bracket node if the PARENT of node is a bracket or inside bracket.
-Return nil if the node is not inside brackets."
-  (treesit-parent-until
-   parent
-   (lambda (parent)
-     (member (treesit-node-type parent) typst-ts-mode--container-node-types))
-   t))
+(defconst typst-ts-mode--container-node-types-regexp
+  ;; '_math_group' here is because `treesit-parent-until' doesn't hanlde node type alias well
+  ;; TODO file a bug
+  (regexp-opt '("block" "content" "group" "math" "_math_group"))
+  "Container node types regexp.")
 
 (defun typst-ts-mode--get-node-bol (node)
   "Get the NODE's indentation offset (at node beginning)."
@@ -768,29 +743,6 @@ Return nil if the node is not inside brackets."
     (goto-char (treesit-node-start node))
     (back-to-indentation)
     (point)))
-
-(defun typst-ts-mode--ancestor-in (types &optional return-bol)
-  "Return a function to check whether one of the ancestors of a node is in TYPES.
-The returned function suits `treesit-simple-indent-rules' Match.
-If RETURN-BOL is non-nil, then return returns the beginning of line position of
-the corresponding ancestor node that its type is in TYPES, else return the
-corresponding ancestor node.  Return nil if ancestor not matching."
-  (lambda (_node parent _bol)
-    (let* ((query-node parent)
-           (ancestor (treesit-parent-until
-                      query-node
-                      (lambda (parent)
-                        (member (treesit-node-type parent) types))
-                      t)))
-      (if return-bol
-          (when ancestor
-            (typst-ts-mode--get-node-bol ancestor))
-        ancestor))))
-
-(defun typst-ts-mode--ancestor-bol (types)
-  "See `typst-ts-mode--ancestor-in'.
-TYPES."
-  (typst-ts-mode--ancestor-in types t))
 
 (defun typst-ts-mode--identation-item-linebreak (_node _parent bol)
   "Where the current line is underneath a item with linebreak as ending.
@@ -836,19 +788,52 @@ work well.  Example:
     (back-to-indentation)
     (point)))
 
-(defun typst-ts-mode--indentation-in-section-content (node parent bol)
-  "Detect whether current node is inside section > content.
-NODE, PARENT, BOL see info node `(elisp) Parser-based Indentation'.
-If match, return the bol of the content node."
-  (when-let ((container-node
-              (funcall (typst-ts-mode--ancestor-in typst-ts-mode--container-node-types)
-                       node parent bol)))
-    (when (and
-           (string= "content" (treesit-node-type container-node))
-           (string= "section" (treesit-node-type (treesit-node-parent container-node))))
-      (typst-ts-mode--get-node-bol container-node))))
+(defun typst-ts-mode-indent--grand-parent-bol (_node parent _bol)
+  "Return the grand parent beginning of line position.
+NODE, PARENT and BOL see `treesit-simple-indent-rules'."
+  (save-excursion
+    (goto-char (treesit-node-start (treesit-node-parent parent)))
+    (back-to-indentation)
+    (point)))
 
-(defvar typst-ts-mode--indent-rules
+(defun typst-ts-mode-indent--no-node-section-container-p (node parent _bol)
+  "Whether the current structure is nil -> parbreak -> container -> section.
+NODE, PARENT and BOL see `treesit-simple-indent-rules'."
+  (unless node
+    (let* ((parent-type (treesit-node-type parent))
+           (gp-node (treesit-node-parent parent))
+           (gp-node-type (treesit-node-type gp-node))
+           (ggp-node-type (treesit-node-type (treesit-node-parent gp-node))))
+      (and
+       (equal "parbreak" parent-type)
+       (string-match-p typst-ts-mode--container-node-types-regexp gp-node-type)
+       (equal "section" ggp-node-type)))))
+
+(defun typst-ts-mode-indent--raw-block-blob-anchor (_node parent bol)
+  "Get the correct anchor for raw block blob.
+Please make sure the passed in NODE, PARENT and BOL is nil, blob and raw_blck.
+Used in `typst-ts-mode-indent-rules'."
+  (let* ((prev-line-bol
+          (save-excursion
+            (forward-line -1)
+            (back-to-indentation)
+            (point)))
+         (prev-line-node
+          (treesit-node-at prev-line-bol))
+         (prev-line-node-type (treesit-node-type prev-line-node))
+         (bol-col
+          (typst-ts-mode-column-at-pos bol))
+         (raw-block-bol
+          (typst-ts-mode--get-node-bol (treesit-node-parent parent)))
+         (raw-block-bol-col
+          (typst-ts-mode-column-at-pos raw-block-bol)))
+    (if (equal "blob" prev-line-node-type)
+        (if (> raw-block-bol-col bol-col)
+            raw-block-bol
+          bol)
+      prev-line-bol)))
+
+(defvar typst-ts-mode-indent-rules
   ;; debug tips:
   ;; use `typst-ts/util/setup-indent-debug-environment' function in `side/utils.el'
   ;; it basically does these (with some extra trivial stuffs):
@@ -861,28 +846,36 @@ If match, return the bol of the content node."
   ;; no-node situation: often in insert mode > hit return at the line ending
   ;; `typst-ts-mode-indent-line-function' is created for handling end of buffer
   ;;  edge cases
+  
+  ;; Note electric-pair-mode will auto insert newline character when condition meets
+  ;; see `typst-ts-mode-electric-pair-open-newline-between-pairs-psif'
+  ;; It may be better to turn off `electric-pair-open-newline-between-pairs'
   `((typst
      ;; ((lambda (node parent bol)  ; NOTE
-     ;;    (message "%s %s %s" node parent bol)
-     ;;    nil) parent-bol 0)
-
-     ((n-p-gp "section" "source_file" nil) column-0 0)  ; <2>
+     ;;    (message "%s %s %s %s %s" node parent
+     ;;             (treesit-node-parent parent)
+     ;;             (treesit-node-parent (treesit-node-parent parent)) bol)
+     ;;    nil)
+     ;;  parent-bol 0)
      
-     ((and (node-is ")") (parent-is "group")) parent-bol 0)
-     ((and (node-is "}") (parent-is "block")) parent-bol 0)
-     ((and (node-is "]") (parent-is "content")) parent-bol 0)
-     ;; math - the last "$" notation
-     ((match "$" "math" nil 2 2) parent-bol 0)
+     ((and no-node (parent-is "source_file")) prev-line 0)
+     ((parent-is "source_file") column-0 0)
+
+     ((n-p-gp ,(regexp-opt '(")" "]" "}" "$"))
+              ,typst-ts-mode--container-node-types-regexp
+              nil)
+      parent-bol 0)
+     
+     ;; math
+     ;; math align, example:
+     ;; sum_(k=0)^n k
+     ;;   &= 1 + ... + n \
+     ((node-is "align") parent-bol typst-ts-mode-indent-offset)
 
      ;; code field, example:
      ;; "a b c"
      ;;   .split(" ")
      ((n-p-gp "." "field" nil) parent-bol typst-ts-mode-indent-offset)
-
-     ;; math align, example:
-     ;; sum_(k=0)^n k
-     ;;   &= 1 + ... + n \
-     ((node-is "align") parent-bol typst-ts-mode-indent-offset)
 
      ;; item - child item
      ((and (node-is "item") (parent-is "item")) parent-bol typst-ts-mode-indent-offset)
@@ -892,54 +885,71 @@ If match, return the bol of the content node."
       typst-ts-mode--indentation-item-linebreak-get-pos typst-ts-mode-indent-offset)
 
      ;; item - item should follow its previous line item's indentation level
-     ((lambda (node parent &rest _)
-        (save-excursion
-          (forward-line -1)
-          (back-to-indentation)
-          (string= "item" (treesit-node-type
-                           (treesit-node-parent
-                            (treesit-node-at (point)))))))
+     ((and no-node
+           (lambda (node parent &rest _)
+             (save-excursion
+               (forward-line -1)
+               (back-to-indentation)
+               (string= "item" (treesit-node-type
+                                (treesit-node-parent
+                                 (treesit-node-at (point))))))))
       prev-line
       0)
 
      ;; raw block
-     ;; (TODO add indent offset when `typst-ts-mode-highlight-raw-block' is enabled)
-     ;; the last "```" notation for raw block
-     ((match "```" "raw_blck" nil 3 3) parent-bol 0)
+     ;; whether normally or in insertion, the current node is always nil...
      ((n-p-gp nil "blob" "raw_blck")
-      no-indent
-      ;; make sure the content indentation is at least as long as raw block header's
-      (lambda (_node parent bol)
-        (let* ((node-raw-blck (treesit-node-parent parent))
-               (raw-block-column (typst-ts-mode-column-at-pos
-                                  (typst-ts-mode--get-node-bol node-raw-blck)))
-               (bol-column (typst-ts-mode-column-at-pos bol)))
-          (if (< bol-column raw-block-column)
-              (- raw-block-column bol-column)
-            0))))
+      typst-ts-mode-indent--raw-block-blob-anchor 0)
 
-     ;; section > content > *> any, suitable for no-node
-     ;; see <2>, which indents the top level headings
-     (typst-ts-mode--indentation-in-section-content
-      typst-ts-mode--indentation-in-section-content
-      typst-ts-mode-indent-offset-section)
+     ;; inside container && container is direct child of "section" (headline)
+     (typst-ts-mode-indent--no-node-section-container-p
+      great-grand-parent 0)
+     ((n-p-gp nil ,typst-ts-mode--container-node-types-regexp "section")
+      grand-parent 0)
 
      ;; inside container
-     (,(typst-ts-mode--ancestor-in typst-ts-mode--container-node-types)
-      ,(typst-ts-mode--ancestor-bol typst-ts-mode--container-node-types)
-      typst-ts-mode-indent-offset)
-
-     ((and no-node (parent-is "source_file"))
-      prev-line 0)
-
-     ;; TODO to be examined
-     (,(typst-ts-mode--ancestor-in '("ERROR")) no-indent 0)
+     ((and no-node (n-p-gp nil "parbreak" ,typst-ts-mode--container-node-types-regexp))
+      typst-ts-mode-indent--grand-parent-bol typst-ts-mode-indent-offset)
+     ((parent-is ,typst-ts-mode--container-node-types-regexp)
+      parent-bol typst-ts-mode-indent-offset)
 
      (no-node parent-bol 0)
+
+     ((parent-is "ERROR") no-indent 0)
 
      ;; example: (item (text) (text) (text)) when `(text)' is in different line
      (catch-all prev-line 0)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
+
+(defvar typst-ts-mode-indent-function nil
+  "This variable shouldn't be customized by user.
+It should hold the originally value of `treesit-indent-function'.")
+
+(defun typst-ts-mode-indent (node parent bol)
+  "Indent function for `treesit-indent-function'.
+This function basically call `typst-ts-mode-indent-function' (i.e. the original
+`treesit-indent-function' to indent), and then it checks whether the current
+line has a local parser (i.e. raw block with highlight on).  If it has, we
+add offset to the line to match the indentation of raw block label.
+NODE, PARENT and BOL see `treesit-indent-function'."
+  (unless typst-ts-mode-indent-function
+    (error "Variable `typst-ts-mode-indent-function' shouldn't be null!"))
+  (let ((res (funcall typst-ts-mode-indent-function node parent bol)))
+    ;; if it is a highlighted raw block region (i.e. contains at least one local parser)
+    (when (treesit-local-parsers-at (treesit-node-start node))
+      ;; when there is no matching rules
+      (unless (car res)
+        (setcar res bol)
+        (setcdr res 0))
+      (let* ((blob_node (treesit-node-at bol 'typst))
+             (raw_block_node (treesit-node-parent blob_node))
+             (raw_block_bol (typst-ts-mode--get-node-bol raw_block_node))
+             (raw_block_bol_column (typst-ts-mode-column-at-pos raw_block_bol))
+             (res-column (+ (typst-ts-mode-column-at-pos (car res)) (cdr res))))
+        (when (> raw_block_bol_column res-column)
+          ;; (message "%s %s %s" res raw_block_bol_column res-column)
+          (setcar res raw_block_bol))))
+    res))
 
 (defun typst-ts-mode-comment-setup()
   "Setup comment related stuffs for `typst-ts-mode'."
@@ -1112,7 +1122,7 @@ Using ARG argument will ignore the context and it will insert a heading instead.
 
 (defun typst-ts-mode-return (&optional arg)
   "Handle RET depends on condition.
-When prefix ARG is non-nil, call `typst-ts-mode-return-function'."
+When prefix ARG is non-nil, call global return function."
   (interactive "P")
   (let (execute-result node)
     (setq
@@ -1124,12 +1134,12 @@ When prefix ARG is non-nil, call `typst-ts-mode-return-function'."
                    (parent-node (treesit-node-parent cur-node))  ; could be nil
                    (parent-node-type (treesit-node-type parent-node)))
          (cond
-          ;; if provided with a prefix-argument, then do `typst-ts-mode-return-function'
           (arg (throw 'execute-result 'default))
           ;; on item node end
           ((and (eolp)
                 (setq node (typst-ts-mode--item-on-line-p))
-                (string= (treesit-node-type node) "item"))
+                (string= (treesit-node-type node) "item")
+                (not (string= (treesit-node-get node '((child -1 nil) (type))) "linebreak")))
            (if (> (treesit-node-child-count node) 1)
                (typst-ts-mode-insert--item node)
              ;; no text means delete the item on current line
@@ -1140,16 +1150,16 @@ When prefix ARG is non-nil, call `typst-ts-mode-return-function'."
           ))))
     ;; execute default action if not successful
     (unless (eq execute-result 'success)
-      (if (commandp typst-ts-mode-return-function)
-          (if (and current-prefix-arg
-                   (yes-or-no-p
-                    (format
-                     "Execute function `%s' with the given prefix argument?"
-                     typst-ts-mode-return-function)))
-              (call-interactively typst-ts-mode-return-function)
-            (let ((current-prefix-arg nil))
-              (call-interactively typst-ts-mode-return-function)))
-        (funcall typst-ts-mode-return-function)))))
+      (let ((global-ret-function
+             (global-key-binding (kbd "RET"))))
+        (if (and current-prefix-arg
+                 (yes-or-no-p
+                  (format
+                   "Execute function `%s' with the given prefix argument?"
+                   global-ret-function)))
+            (call-interactively global-ret-function)
+          (let ((current-prefix-arg nil))
+            (call-interactively global-ret-function)))))))
 
 (defun typst-ts-mode-insert--item (node)
   "Insert an item after NODE.
@@ -1164,7 +1174,7 @@ This function respects indentation."
                            (typst-ts-mode--get-node-bol node))))
     (goto-char item-end)
     (newline)
-    (indent-to-column node-bol-column)
+    (indent-line-to node-bol-column)
     (insert (if (= item-number 0)
                 item-type
               (concat (number-to-string (1+ item-number)) "."))
@@ -1341,9 +1351,7 @@ PROC: process; OUTPUT: new output from PROC."
 
 ;;;###autoload
 (defun typst-ts-mode-cycle (&optional _arg)
-  "Cycle.
-Customize `typst-ts-mode-tab-function' for default tab function when no
-condition matches."
+  "Cycle."
   (interactive "P")
   (let (execute-result)
     (setq
@@ -1415,9 +1423,7 @@ condition matches."
           (t nil)))))
     ;; execute default action if not successful
     (unless (eq execute-result 'success)
-      (if (commandp typst-ts-mode-tab-function)
-          (call-interactively typst-ts-mode-tab-function)
-        (funcall typst-ts-mode-tab-function)))))
+      (call-interactively (global-key-binding (kbd "TAB"))))))
 
 ;;;###autoload
 (defvar typst-ts-mode-map
@@ -1479,13 +1485,49 @@ nil and parbreak."
     (backward-char))
   (treesit-indent))
 
-;;;###autoload
-(define-derived-mode typst-ts-mode text-mode "Typst"
-  "Major mode for editing Typst, powered by tree-sitter."
-  :group 'typst
-  :syntax-table typst-ts-mode-syntax-table
-  :after-hook
-  ;; it seems like the following code only works in this place (after-hook)
+(defun typst-ts-mode-electric-pair-open-newline-between-pairs-psif ()
+  "Custom version of `electric-pair-open-newline-between-pairs-psif'.
+It provide the ability to automatically open a new line for '$' character."
+  (when (and (if (functionp electric-pair-open-newline-between-pairs)
+                 (funcall electric-pair-open-newline-between-pairs)
+               electric-pair-open-newline-between-pairs)
+             (eq last-command-event ?\n)
+             (< (1+ (point-min)) (point) (point-max))
+             (let ((cb (save-excursion
+                         (skip-chars-backward "\t\s")
+                         (char-before (1- (point)))))
+                   (ca (char-after)))
+               (or (eq cb (matching-paren ca))
+                   (and (eq cb ?\$) (eq ca ?\$)))))
+    (save-excursion (newline 1 t))))
+
+(defun typst-ts-mode-check-grammar-version ()
+  "Check typst tree sitter grammar version.
+May not be correct(modified time can be the download time, copied time, etc.),
+but it does help prevent some error cases."
+  (when typst-ts-mode-grammar-location
+    (let ((min-time (time-convert typst-ts-mode--grammar-minimum-version-timestamp nil))
+          (mod-time
+           (file-attribute-modification-time
+            (file-attributes typst-ts-mode-grammar-location))))
+      (when (time-less-p mod-time min-time)
+        (message
+         (propertize
+          (format "Please ensure that you have installed the latest \
+typst tree sitter grammar (at least %s)!" (current-time-string min-time))
+          'face '(:weight bold :foreground "firebrick")))))))
+
+(defun typst-ts-mode-after-hook-function ()
+  "Run after all hooks in `typst-ts-mode-hook'."
+  ;; patch `electric-pair-post-self-insert-function' function
+  (when electric-pair-mode
+    ;; add-function :override buffer-locally doesn't work, so we do this...
+    (remove-hook 'post-self-insert-hook 'electric-pair-post-self-insert-function t)
+    (add-hook 'post-self-insert-hook
+              'typst-ts-mode-electric-pair-open-newline-between-pairs-psif
+              t))
+  
+  ;; it seems like the following code only works after-hook
   (when (and typst-ts-mode-enable-raw-blocks-highlight
              typst-ts-mode-highlight-raw-blocks-at-startup)
     ;; since currently local parsers haven't created, we cannot only load
@@ -1502,26 +1544,33 @@ nil and parbreak."
                (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
                (add-to-list 'typst-ts-els--include-languages lang))))
 
+  (typst-ts-mode-check-grammar-version))
+
+;;;###autoload
+(define-derived-mode typst-ts-mode text-mode "Typst"
+  "Major mode for editing Typst, powered by tree-sitter."
+  :group 'typst
+  :syntax-table typst-ts-mode-syntax-table
+  :after-hook
+  (typst-ts-mode-after-hook-function)
+
   (unless (treesit-ready-p 'typst)
     (error "Tree-sitter for Typst isn't available"))
 
-  (if typst-ts-mode-enable-raw-blocks-highlight
-      (let ((parser (treesit-parser-create 'typst)))
-        (when typst-ts-mode-highlight-raw-block
-          (treesit-parser-add-notifier
-           parser
-           'typst-ts-els-include-dynamically)))
-    (treesit-parser-create 'typst))
+  (let ((parser (treesit-parser-create 'typst)))
+    (when typst-ts-mode-enable-raw-blocks-highlight
+      (treesit-parser-add-notifier
+       parser
+       'typst-ts-els-include-dynamically)))
 
   ;; Comments.
   (typst-ts-mode-comment-setup)
 
   ;; Electric
   (setq-local
-   ;; =: heading and others
    ;; &: math align
    ;; .: code field
-   electric-indent-chars (append "{}()[]$=&." electric-indent-chars)
+   electric-indent-chars (append "{}()[]$&." electric-indent-chars)
    electric-pair-pairs '((?\" . ?\")
                          (?\{ . ?\})
                          (?\( . ?\))
@@ -1536,7 +1585,7 @@ nil and parbreak."
   (setq-local treesit-font-lock-feature-list typst-ts-mode-font-lock-feature-list)
 
   ;; Indentation
-  (setq-local treesit-simple-indent-rules typst-ts-mode--indent-rules)
+  (setq-local treesit-simple-indent-rules typst-ts-mode-indent-rules)
 
   ;; Imenu
   (setq-local treesit-simple-imenu-settings
@@ -1575,6 +1624,8 @@ nil and parbreak."
   ;; TODO add it to after-hook
   (outline-minor-mode t)
   
+  (setq-local typst-ts-mode-indent-function treesit-indent-function
+              treesit-indent-function 'typst-ts-mode-indent)
   (treesit-major-mode-setup)
 
   (setq-local indent-line-function #'typst-ts-mode-indent-line-function))
