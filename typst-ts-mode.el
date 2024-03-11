@@ -34,6 +34,7 @@
 (require 'outline)
 
 (require 'typst-ts-embedding-lang-settings)
+(require 'typst-ts-utils)
 
 (defgroup typst-ts nil
   "Tree Sitter enabled Typst Writing."
@@ -76,7 +77,8 @@ be noticeably affected probably."
 
 ;; TODO currently set nil as default, since it still needs refinement
 (defcustom typst-ts-mode-enable-raw-blocks-highlight nil
-  "Whether to enable raw block highlighting."
+  "Whether to enable raw block highlighting.
+NOTE: currently only support Emacs 30 (master branch)."
   :type 'boolean
   :group 'typst-ts)
 
@@ -333,7 +335,7 @@ See `typst-ts-mode-fontification-precision-level'."
   "Face for term description."
   :group 'typst-ts-faces)
 
-(defface typst-ts-markup-quote-face ;; TODO better choice?
+(defface typst-ts-markup-quote-face
   '((t :inherit shadow))
   "Face for quote."
   :group 'typst-ts-faces)
@@ -494,7 +496,8 @@ NODE."
         (ne (treesit-node-end node))
         (lang-node (treesit-node-prev-sibling node))
         lang)
-    (if (not (equal (treesit-node-type lang-node) "ident"))
+    (if (or (< emacs-major-version 30)
+            (not (equal (treesit-node-type lang-node) "ident")))
         (put-text-property ns ne 'face 'typst-ts-markup-rawblock-blob-face)
       (setq lang (gethash
                   (downcase (treesit-node-text lang-node))
@@ -543,10 +546,10 @@ If you want to customize the rules, please customize the same name variable
                "`" @typst-ts-markup-rawspan-indicator-face)
               (raw_blck
                "```" @typst-ts-markup-rawblock-indicator-face
-               (ident) :? @typst-ts-mode-highlight-raw-block-fn
+               (ident) :? @typst-ts-markup-rawblock-lang-face
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
-                     '((blob) @typst-ts-mode-highlight-block-fn)
+                     '((blob) @typst-ts-mode-highlight-raw-block-fn)
                    '((blob) @typst-ts-markup-rawblock-blob-face))
                "```" @typst-ts-markup-rawblock-indicator-face)
               (label) @typst-ts-markup-label-face
@@ -599,10 +602,10 @@ If you want to customize the rules, please customize the same name variable
                "`" @typst-ts-markup-rawspan-indicator-face)
               (raw_blck
                "```" @typst-ts-markup-rawblock-indicator-face
-               (ident) :? @typst-ts-mode-highlight-raw-block-fn
+               (ident) :? @typst-ts-markup-rawblock-lang-face
                ;; NOTE let embedded language fontify blob
                ,@(if typst-ts-mode-enable-raw-blocks-highlight
-                     '((blob) @typst-ts-mode-highlight-block-fn)
+                     '((blob) @typst-ts-mode-highlight-raw-block-fn)
                    '((blob) @typst-ts-markup-rawblock-blob-face))
                "```" @typst-ts-markup-rawblock-indicator-face)
               (label) @typst-ts-markup-label-face  ; TODO more precise highlight (upstream)
@@ -936,7 +939,7 @@ NODE, PARENT and BOL see `treesit-indent-function'."
     (error "Variable `typst-ts-mode-indent-function' shouldn't be null!"))
   (let ((res (funcall typst-ts-mode-indent-function node parent bol)))
     ;; if it is a highlighted raw block region (i.e. contains at least one local parser)
-    (when (treesit-local-parsers-at (treesit-node-start node))
+    (when (typst-ts-utils-local-parsers-at (treesit-node-start node))
       ;; when there is no matching rules
       (unless (car res)
         (setcar res bol)
@@ -1528,8 +1531,10 @@ typst tree sitter grammar (at least %s)!" (current-time-string min-time))
               t))
   
   ;; it seems like the following code only works after-hook
-  (when (and typst-ts-mode-enable-raw-blocks-highlight
-             typst-ts-mode-highlight-raw-blocks-at-startup)
+  (when (and
+         (>= emacs-major-version 30)
+         typst-ts-mode-enable-raw-blocks-highlight
+         typst-ts-mode-highlight-raw-blocks-at-startup)
     ;; since currently local parsers haven't created, we cannot only load
     ;; those necessary parsers
     (cl-loop for setting in typst-ts-embedding-lang-settings
@@ -1600,18 +1605,19 @@ typst tree sitter grammar (at least %s)!" (current-time-string min-time))
             (file-name-nondirectory buffer-file-name)
             typst-ts-mode-compile-options))
 
-  (if (not typst-ts-mode-enable-raw-blocks-highlight)
+  (when (>= emacs-major-version 30)
+    (if (not typst-ts-mode-enable-raw-blocks-highlight)
+        (setq-local treesit-range-settings
+                    (typst-ts-mode--treesit-range-rules '(typst)))
+      (setq-local treesit-language-at-point-function
+                  'typst-ts-mode--language-at-point)
       (setq-local treesit-range-settings
-                  (typst-ts-mode--treesit-range-rules '(typst)))
-    (setq-local treesit-language-at-point-function
-                'typst-ts-mode--language-at-point)
-    (setq-local treesit-range-settings
-                (typst-ts-mode--treesit-range-rules
-                 (append
-                  (cl-loop for setting in typst-ts-embedding-lang-settings
-                           when (treesit-ready-p (car setting) t)
-                           collect (car setting))
-                  '(typst)))))
+                  (typst-ts-mode--treesit-range-rules
+                   (append
+                    (cl-loop for setting in typst-ts-embedding-lang-settings
+                             when (treesit-ready-p (car setting) t)
+                             collect (car setting))
+                    '(typst))))))
 
   ;; Outline
   (if nil  ; (>= emacs-major-version 30)

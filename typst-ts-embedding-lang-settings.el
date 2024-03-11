@@ -21,6 +21,7 @@
 
 ;;; Code:
 (require 'treesit)
+(require 'typst-ts-utils)
 
 (defcustom typst-ts-highlight-raw-block-langs-not-in-predefined-settings t
   "Whether to highlight raw block of language that is not in settings.
@@ -714,7 +715,9 @@ case-sensitive."
 
 (defun typst-ts-els--treesit-range-rules (lang)
   "Get the treesit range rules for LANG.
-LANG: language symbol."
+LANG: language symbol.
+NOTE this function is only meant to be used in Emacs 30 since Emacs 29 doesn't
+have `:local t' flag and if without it, the all the highlight gone."
   (treesit-range-rules
    :embed lang
    :host 'typst
@@ -773,7 +776,7 @@ Use this function as one notifier of `treesit-parser-notifiers'."
            (mapcar #'treesit-parser-language (treesit-parser-list))
            ;; parsers created by `treesit-range-settings'
            (mapcar #'treesit-parser-language
-                   (treesit-local-parsers-on (point-min) (point-max))))))
+                   (typst-ts-utils-local-parsers-on (point-min) (point-max))))))
         lang-ts-mode settings)
     (dolist (lang parser-langs)
       (unless (member lang typst-ts-els--include-languages)
@@ -799,7 +802,7 @@ Use this function as one notifier of `treesit-parser-notifiers'."
                        ;; delete top level parsers, so range rules works (i.e. local parsers)
                        ;; so that highlighting will not exceed the desired range
                        (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
-
+                       
                        ;; find and merge settings
                        (setq lang-ts-mode
                              (intern (concat (symbol-name lang) "-ts-mode")))

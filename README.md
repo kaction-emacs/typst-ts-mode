@@ -100,6 +100,7 @@ Here are some options you may find useful:
 
 ### Raw block highlighting
 _This is an experimental feature_  
+**Note**: currently only support Emacs 30 (master branch). But non-treesit font lock for raw block feature will be added soon (both 29 and 30).  
 Only support tree-sitter languages.  
 For more detailed documentation about raw block highlighting see 
 [this documentation](./doc/raw-block-highlighing.md)  
