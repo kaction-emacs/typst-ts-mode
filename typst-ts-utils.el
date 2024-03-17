@@ -57,6 +57,28 @@ BEG END LANGUAGE WITH-HOST."
             (push (if with-host (cons parser host-parser) parser) res))))
       (nreverse res))))
 
+(defun typst-ts-utils-node-get (node instructions)
+  "Get things from NODE by INSTRUCTIONS.
+It's a copy of Emacs 30's `treesit-node-get' function."
+  (declare (indent 1))
+  (if (>= emacs-major-version 30)
+      (treesit-node-get node instructions)
+    (while (and node instructions)
+      (pcase (pop instructions)
+        ('(field-name) (setq node (treesit-node-field-name node)))
+        ('(type) (setq node (treesit-node-type node)))
+        (`(child ,idx ,named) (setq node (treesit-node-child node idx named)))
+        (`(parent ,n) (dotimes (_ n)
+                        (setq node (treesit-node-parent node))))
+        (`(text ,no-property) (setq node (treesit-node-text node no-property)))
+        (`(children ,named) (setq node (treesit-node-children node named)))
+        (`(sibling ,step ,named)
+         (dotimes (_ (abs step))
+           (setq node (if (> step 0)
+                          (treesit-node-next-sibling node named)
+                        (treesit-node-prev-sibling node named)))))))
+    node))
+
 (provide 'typst-ts-utils)
 
 ;;; typst-ts-utils.el ends here
