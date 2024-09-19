@@ -763,14 +763,14 @@ See `treesit-simple-indent-rules'."
               (prev-nonwhite-line-node
                (treesit-node-at prev-nonwhite-pos))
               ((equal (treesit-node-type prev-nonwhite-line-node) "linebreak"))
-              
+
               (prev-nonwhite-line-heading-node
                (save-excursion
                  (goto-char prev-nonwhite-pos)
                  (back-to-indentation)
                  (treesit-node-at (point))))
               ((equal (treesit-node-type prev-nonwhite-line-heading-node) "-"))
-              
+
               (prev-nonwhite-line-top-node (treesit-node-parent
                                             prev-nonwhite-line-heading-node)))
     (equal (treesit-node-type prev-nonwhite-line-top-node) "item")))
@@ -843,13 +843,13 @@ Used in `typst-ts-mode-indent-rules'."
   ;; 1. `toggle-debug-on-error' to make sure you indentation code error report
   ;; 2. enable `treesit--indent-verbose' to see what indentation rule matches
   ;; 3. `treesit-inspect-mode' or `treesit-inspect-node-at-point'
-  
+
   ;; `indentation-test.typ' file is used for testing indentation.
 
   ;; no-node situation: often in insert mode > hit return at the line ending
   ;; `typst-ts-mode-indent-line-function' is created for handling end of buffer
   ;;  edge cases
-  
+
   ;; Note electric-pair-mode will auto insert newline character when condition meets
   ;; see `typst-ts-mode-electric-pair-open-newline-between-pairs-psif'
   ;; It may be better to turn off `electric-pair-open-newline-between-pairs'
@@ -860,7 +860,7 @@ Used in `typst-ts-mode-indent-rules'."
      ;;             (treesit-node-parent (treesit-node-parent parent)) bol)
      ;;    nil)
      ;;  parent-bol 0)
-     
+
      ((and no-node (parent-is "source_file")) prev-line 0)
      ((parent-is "source_file") column-0 0)
 
@@ -868,7 +868,7 @@ Used in `typst-ts-mode-indent-rules'."
               ,typst-ts-mode--container-node-types-regexp
               nil)
       parent-bol 0)
-     
+
      ;; math
      ;; math align, example:
      ;; sum_(k=0)^n k
@@ -1370,7 +1370,7 @@ PROC: process; OUTPUT: new output from PROC."
           ((equal parent-node-type "raw_blck")
            (insert-tab)
            (throw 'execute-result 'success))
-          
+
           ((or (equal cur-node-type "parbreak")
                (equal parent-node-type "item")
                ;; please turn on whitespace-mode to test the following conditions
@@ -1529,7 +1529,7 @@ typst tree sitter grammar (at least %s)!" (current-time-string min-time))
     (add-hook 'post-self-insert-hook
               'typst-ts-mode-electric-pair-open-newline-between-pairs-psif
               t))
-  
+
   ;; it seems like the following code only works after-hook
   (when (and
          (>= emacs-major-version 30)
@@ -1546,7 +1546,7 @@ typst tree sitter grammar (at least %s)!" (current-time-string min-time))
                  (typst-ts-els-merge-settings config)
                ;; some feature like cmake-ts-mode will create a parser when
                ;; the feature is required, so we need to clean thease parsers
-               (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
+               (mapc #'treesit-parser-delete (treesit-parser-list nil))
                (add-to-list 'typst-ts-els--include-languages lang))))
 
   (typst-ts-mode-check-grammar-version))
@@ -1629,7 +1629,7 @@ typst tree sitter grammar (at least %s)!" (current-time-string min-time))
   ;; provides outline ellipsis
   ;; TODO add it to after-hook
   (outline-minor-mode t)
-  
+
   (setq-local typst-ts-mode-indent-function treesit-indent-function
               treesit-indent-function 'typst-ts-mode-indent)
   (treesit-major-mode-setup)
