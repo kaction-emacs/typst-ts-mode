@@ -789,7 +789,7 @@ Use this function as one notifier of `treesit-parser-notifiers'."
                   (typst-ts-els-merge-lang-settings lang)
                   ;; some feature like cmake-ts-mode will create a parser when
                   ;; the feature is required, so we need to clean thease parsers
-                  (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
+                  (mapc #'treesit-parser-delete (treesit-parser-list nil))
                   (message "Load %s language settings from configuration." lang))
               (error
                ;; if language not in setting or encounter error during loading,
@@ -801,8 +801,8 @@ Use this function as one notifier of `treesit-parser-notifiers'."
                        (typst-ts-els--add-treesit-range-rules lang)
                        ;; delete top level parsers, so range rules works (i.e. local parsers)
                        ;; so that highlighting will not exceed the desired range
-                       (mapc #'treesit-parser-delete (treesit-parser-list nil lang))
-                       
+                       (mapc #'treesit-parser-delete (treesit-parser-list nil))
+
                        ;; find and merge settings
                        (setq lang-ts-mode
                              (intern (concat (symbol-name lang) "-ts-mode")))
@@ -866,7 +866,7 @@ TAGS: either a string or a list of strings."
         (puthash temp-lang
                  (remove tag (gethash temp-lang typst-ts-els-lang-tags-map))
                  typst-ts-els-lang-tags-map))
-      
+
       (puthash tag lang typst-ts-els-tag-lang-map))
     (puthash lang (seq-uniq (append tags original-tags)) typst-ts-els-lang-tags-map)))
 
@@ -882,10 +882,10 @@ LANG and NEWLANG: either a symbol or string."
     (unless (eq lang newlang)
       (setq lang-tags (gethash lang typst-ts-els-lang-tags-map))
       (setq newlang-tags (gethash newlang typst-ts-els-lang-tags-map))
-      
+
       (dolist (tag lang-tags)
         (puthash tag newlang typst-ts-els-tag-lang-map))
-      
+
       (puthash newlang (append newlang-tags lang-tags) typst-ts-els-lang-tags-map)
       (remhash lang typst-ts-els-lang-tags-map))))
 
